@@ -1,9 +1,19 @@
 package org.junnikym.springfbp
 
-class BeanDependencyLink (_from: Any?, _to: Any?) {
+import org.springframework.beans.factory.config.BeanDefinition
 
-    val from = _from;
-    val to   = _to;
+class BeanDependencyLink {
+
+    val from: BeanDependencyNode;
+    val to: BeanDependencyNode;
+
+    constructor(
+        from : BeanDependencyNode,
+        to: BeanDependencyNode
+    ) {
+        this.from = from;
+        this.to   = to;
+    }
 
     override fun toString(): String {
         return "[link] $from >>>>> $to";
