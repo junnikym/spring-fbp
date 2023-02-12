@@ -23,8 +23,6 @@ class InitializingBeanDetector : InitializingBean {
         beanFactory.beanDefinitionNames
             .mapNotNull(::getLink)
             .forEach(linkFactory::add);
-
-        println(linkFactory);
     }
 
     private fun getLink(beanName: String): List<BeanDependencyLink>? {
