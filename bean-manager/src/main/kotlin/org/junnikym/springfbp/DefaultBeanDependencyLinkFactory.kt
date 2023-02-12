@@ -67,6 +67,17 @@ class DefaultBeanDependencyLinkFactory : BeanDependencyLinkFactory {
         return reverseLinkMap.containsKey(link.from.name);
     }
 
+    override fun getParentNames(beanName: String): List<String> {
+        return getLinksWithParent(beanName).map { it.from.name };
+    }
+
+    override fun getLinksWithParent(beanName: String): List<BeanDependencyLink> {
+        if(reverseLinkMap.containsKey(beanName))
+            return listOf();
+
+        return reverseLinkMap[beanName]!!;
+    }
+
     override fun isRoot(beanName: String): Boolean {
         return rootNodeNames.contains(beanName);
     }
