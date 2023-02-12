@@ -20,6 +20,10 @@ dependencies {
     testImplementation("org.springframework.boot:spring-boot-starter-test")
 
     implementation("org.springframework.boot:spring-boot-starter-thymeleaf")
+
+    // Modules in project
+
+    implementation(project(":bean-manager"))
 }
 
 
