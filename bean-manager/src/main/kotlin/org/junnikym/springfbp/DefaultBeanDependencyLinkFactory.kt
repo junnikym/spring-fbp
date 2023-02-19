@@ -13,11 +13,12 @@ class DefaultBeanDependencyLinkFactory : BeanDependencyLinkFactory {
     // val : parent node
     private val reverseLinkMap : HashMap<String, ArrayList<BeanDependencyLink>> = HashMap();
 
-    private val links : ArrayList<BeanDependencyLink> = ArrayList();
+    private val linkList : ArrayList<BeanDependencyLink> = ArrayList();
 
     private val rootNodeNames : HashSet<String> = HashSet();
 
     override fun add(link: BeanDependencyLink) {
+        addToLinkList(link);
         addToLinkMap(link);
         addToReverseLinkMap(link);
         updateRootNodeNames(link);
@@ -25,6 +26,10 @@ class DefaultBeanDependencyLinkFactory : BeanDependencyLinkFactory {
 
     override fun add(link: List<BeanDependencyLink>) {
         link.forEach(::add);
+    }
+
+    private fun addToLinkList(link: BeanDependencyLink) {
+        linkList.add(link);
     }
 
     private fun addToLinkMap(link: BeanDependencyLink) {
@@ -96,7 +101,7 @@ class DefaultBeanDependencyLinkFactory : BeanDependencyLinkFactory {
 
 
     override fun getLinks(): ArrayList<BeanDependencyLink> {
-        return links;
+        return linkList;
     }
 
     override fun getLinks(name: String): ArrayList<BeanDependencyLink> {
