@@ -17,7 +17,10 @@ class DefaultBeanDependencyLinkFactory : BeanDependencyLinkFactory {
 
     private val rootNodeNames : HashSet<String> = HashSet();
 
+    private val linkedBeanList : HashSet<String> = HashSet();
+
     override fun add(link: BeanDependencyLink) {
+        addToListedBeanList(link)
         addToLinkList(link);
         addToLinkMap(link);
         addToReverseLinkMap(link);
@@ -26,6 +29,11 @@ class DefaultBeanDependencyLinkFactory : BeanDependencyLinkFactory {
 
     override fun add(link: List<BeanDependencyLink>) {
         link.forEach(::add);
+    }
+
+    private fun addToListedBeanList(link: BeanDependencyLink) {
+        linkedBeanList.add(link.from.name);
+        linkedBeanList.add(link.to.name);
     }
 
     private fun addToLinkList(link: BeanDependencyLink) {
@@ -113,8 +121,8 @@ class DefaultBeanDependencyLinkFactory : BeanDependencyLinkFactory {
 
 
 
-    override fun toString(): String {
-        return linkMap.toString()
+    override fun getLinkedBeans(): Set<String> {
+        return linkedBeanList;
     }
 
 }

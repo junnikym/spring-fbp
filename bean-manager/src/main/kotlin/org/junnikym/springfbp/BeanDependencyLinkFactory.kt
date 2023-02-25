@@ -30,4 +30,7 @@ interface BeanDependencyLinkFactory {
 
     fun getLinks(name: String): ArrayList<BeanDependencyLink>;
 
+
+    fun getLinkedBeans(): Set<String>;
+
 }
