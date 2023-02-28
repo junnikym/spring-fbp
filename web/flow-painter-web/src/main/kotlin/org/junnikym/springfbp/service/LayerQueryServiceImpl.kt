@@ -1,11 +1,9 @@
 package org.junnikym.springfbp.service
 
-import org.junnikym.springfbp.BeanDependencyLink
 import org.junnikym.springfbp.BeanDependencyLinkFactory
 import org.junnikym.springfbp.BeanWithLayer
 import org.springframework.stereotype.Service
 import java.util.stream.Collectors
-import kotlin.math.max
 
 @Service
 class LayerQueryServiceImpl (
@@ -17,7 +15,7 @@ class LayerQueryServiceImpl (
         beanLayerFactory.update()
 
         val layerMap = beanDependencyLinkFactory
-            .getLinkedBeans().stream()
+            .getLinkedBeans().parallelStream()
             .map(::beanWithLayerOf)
             .collect(Collectors.groupingBy { it.layer })
 
@@ -27,15 +25,16 @@ class LayerQueryServiceImpl (
             if(!layerMap.containsKey(it))
                 return@run
 
-            result.add(layerMap[0]!!)
+            result.add(layerMap[it]!!)
         }
 
-        return result;
+        return result
     }
 
     override fun getLayer(beanName: String): Int {
         return beanLayerFactory.get(beanName);
     }
+
     private fun beanWithLayerOf(beanName: String): BeanWithLayer {
         return BeanWithLayer(
             beanName,
