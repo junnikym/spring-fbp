@@ -118,7 +118,7 @@ class TestBeanDependencyLinkFactory(
     }
 
     override fun getLinkedBeans(): Set<String> {
-        TODO("Not use")
+        return linkedBeanList;
     }
 
 }
