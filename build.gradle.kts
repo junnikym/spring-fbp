@@ -80,6 +80,6 @@ dependencies {
 	testImplementation("org.springframework.boot:spring-boot-starter-test")
 
 	subprojects.forEach{
-		api(it)
+		implementation(it)
 	}
 }
