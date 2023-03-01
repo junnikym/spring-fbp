@@ -49,27 +49,10 @@ class BeanLayerFactoryImpl(
         newLayerMap[beanName] = layer.coerceAtLeast(recordedLayer);
 
         // next step
-        getLinks(beanName)
+        beanDependencyLinkFactory.getLinks(beanName)
             .forEach { searchLinkBranch(layer+1, it.to.name, newLayerMap, histories) }
 
         histories.remove(beanName)
-    }
-
-    /**
-     * get links which linked with target
-     *
-     *     it returns list of links which linked with target.
-     *     when exception occurs, it returns empty list.
-     *
-     * @param beanName target bean name
-     * @return returning links
-     */
-    private fun getLinks(beanName: String): List<BeanDependencyLink> {
-        return try {
-            beanDependencyLinkFactory.getLinks(beanName)
-        } catch (e: Exception) {
-            listOf()
-        }
     }
 
 }
