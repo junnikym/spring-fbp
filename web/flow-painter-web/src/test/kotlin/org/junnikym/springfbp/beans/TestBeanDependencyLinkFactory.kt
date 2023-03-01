@@ -117,7 +117,7 @@ class TestBeanDependencyLinkFactory(
         return ArrayList(linkMap[name]!!)
     }
 
-    override fun getLinkedBeans(): Set<String> {
+    override fun getLinkedBeanNames(): Set<String> {
         return linkedBeanList;
     }
 

@@ -15,7 +15,7 @@ class LayerQueryServiceImpl (
         beanLayerFactory.update()
 
         val layerMap = beanDependencyLinkFactory
-            .getLinkedBeans().parallelStream()
+            .getLinkedBeanNames().parallelStream()
             .map(::beanWithLayerOf)
             .collect(Collectors.groupingBy { it.layer })
 

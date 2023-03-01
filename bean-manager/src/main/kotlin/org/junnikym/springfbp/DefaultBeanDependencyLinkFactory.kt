@@ -7,47 +7,47 @@ class DefaultBeanDependencyLinkFactory : BeanDependencyLinkFactory {
 
     // key : name of from (bean); parent node
     // val : child node
-    private val linkMap : HashMap<String, ArrayList<BeanDependencyLink>> = HashMap();
+    private val linkMap : HashMap<String, ArrayList<BeanDependencyLink>> = HashMap()
 
     // key : name of from (bean); child node
     // val : parent node
-    private val reverseLinkMap : HashMap<String, ArrayList<BeanDependencyLink>> = HashMap();
+    private val reverseLinkMap : HashMap<String, ArrayList<BeanDependencyLink>> = HashMap()
 
-    private val linkList : ArrayList<BeanDependencyLink> = ArrayList();
+    private val linkList : ArrayList<BeanDependencyLink> = ArrayList()
 
-    private val rootNodeNames : HashSet<String> = HashSet();
+    private val rootNodeNameSet : HashSet<String> = HashSet()
 
-    private val linkedBeanList : HashSet<String> = HashSet();
+    private val linkedBeanNameList : HashSet<String> = HashSet()
 
     override fun add(link: BeanDependencyLink) {
         addToListedBeanList(link)
-        addToLinkList(link);
-        addToLinkMap(link);
-        addToReverseLinkMap(link);
-        updateRootNodeNames(link);
+        addToLinkList(link)
+        addToLinkMap(link)
+        addToReverseLinkMap(link)
+        updateRootNodeNames(link)
     }
 
     override fun add(link: List<BeanDependencyLink>) {
-        link.forEach(::add);
+        link.forEach(::add)
     }
 
     private fun addToListedBeanList(link: BeanDependencyLink) {
-        linkedBeanList.add(link.from.name);
-        linkedBeanList.add(link.to.name);
+        linkedBeanNameList.add(link.from.name)
+        linkedBeanNameList.add(link.to.name)
     }
 
     private fun addToLinkList(link: BeanDependencyLink) {
-        linkList.add(link);
+        linkList.add(link)
     }
 
     private fun addToLinkMap(link: BeanDependencyLink) {
-        val name = link.from.name;
-        addToMap(name, link, linkMap);
+        val name = link.from.name
+        addToMap(name, link, linkMap)
     }
 
     private fun addToReverseLinkMap(link: BeanDependencyLink) {
-        val name = link.to.name;
-        addToMap(name, link, reverseLinkMap);
+        val name = link.to.name
+        addToMap(name, link, reverseLinkMap)
     }
 
     private fun addToMap(
@@ -55,74 +55,74 @@ class DefaultBeanDependencyLinkFactory : BeanDependencyLinkFactory {
         link: BeanDependencyLink,
         map: HashMap<String, ArrayList<BeanDependencyLink>>
     ) {
-        val linkList = linkMap.getOrDefault(name, ArrayList());
-        linkList.add(link);
-        map[name] = linkList;
+        val linkList = map.getOrDefault(name, ArrayList())
+        linkList.add(link)
+        map[name] = linkList
     }
 
     private fun updateRootNodeNames(link: BeanDependencyLink) {
-        rootNodeNames
+        rootNodeNameSet
             .filter(::hasParent)
-            .forEach(rootNodeNames::remove);
+            .forEach(rootNodeNameSet::remove)
 
         // add new node (or not);
-        if(!hasFromNodeParent(link))
-            rootNodeNames.add(link.from.name);
+        if(!hasParentOfFromNode(link))
+            rootNodeNameSet.add(link.from.name)
     }
 
 
 
     override fun hasParent(nodeName: String): Boolean {
-        return reverseLinkMap.containsKey(nodeName);
+        return reverseLinkMap.containsKey(nodeName)
     }
 
-    override fun hasFromNodeParent(link: BeanDependencyLink): Boolean {
-        return reverseLinkMap.containsKey(link.from.name);
+    override fun hasParentOfFromNode(link: BeanDependencyLink): Boolean {
+        return reverseLinkMap.containsKey(link.from.name)
     }
 
     override fun getParentNames(beanName: String): List<String> {
-        return getLinksWithParent(beanName).map { it.from.name };
+        return getLinksWithParent(beanName).map { it.from.name }
     }
 
     override fun getLinksWithParent(beanName: String): List<BeanDependencyLink> {
-        if(reverseLinkMap.containsKey(beanName))
-            return listOf();
+        if(!reverseLinkMap.containsKey(beanName))
+            return listOf()
 
-        return reverseLinkMap[beanName]!!;
+        return reverseLinkMap[beanName]!!
     }
 
     override fun isRoot(beanName: String): Boolean {
-        return rootNodeNames.contains(beanName);
+        return rootNodeNameSet.contains(beanName)
     }
 
     override fun getRootLinks(): List<BeanDependencyLink> {
-        return rootNodeNames
+        return rootNodeNameSet
             .filter(linkMap::containsKey)
             .map { linkMap.getOrDefault(it, ArrayList()) }
-            .flatten();
+            .flatten()
     }
 
     override fun getRootNames(): List<String> {
-        return rootNodeNames.map { it };
+        return rootNodeNameSet.map { it }
     }
 
 
 
-    override fun getLinks(): ArrayList<BeanDependencyLink> {
-        return linkList;
+    override fun getLinks(): List<BeanDependencyLink> {
+        return linkList
     }
 
-    override fun getLinks(name: String): ArrayList<BeanDependencyLink> {
+    override fun getLinks(name: String): List<BeanDependencyLink> {
         if(!linkMap.containsKey(name))
-            throw RuntimeException("Not exists links");
+            return listOf()
 
-        return linkMap[name]!!;
+        return linkMap[name]!!
     }
 
 
 
-    override fun getLinkedBeans(): Set<String> {
-        return linkedBeanList;
+    override fun getLinkedBeanNames(): Set<String> {
+        return linkedBeanNameList;
     }
 
 }

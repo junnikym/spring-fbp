@@ -10,7 +10,7 @@ interface BeanDependencyLinkFactory {
 
     fun hasParent(nodeName: String): Boolean;
 
-    fun hasFromNodeParent(link: BeanDependencyLink): Boolean;
+    fun hasParentOfFromNode(link: BeanDependencyLink): Boolean;
 
     fun getParentNames(beanName: String): List<String>
 
@@ -26,11 +26,11 @@ interface BeanDependencyLinkFactory {
 
 
 
-    fun getLinks(): ArrayList<BeanDependencyLink>;
+    fun getLinks(): List<BeanDependencyLink>;
 
-    fun getLinks(name: String): ArrayList<BeanDependencyLink>;
+    fun getLinks(name: String): List<BeanDependencyLink>;
 
 
-    fun getLinkedBeans(): Set<String>;
+    fun getLinkedBeanNames(): Set<String>;
 
 }
