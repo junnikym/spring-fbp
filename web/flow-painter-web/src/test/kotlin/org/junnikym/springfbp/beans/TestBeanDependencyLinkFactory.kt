@@ -85,7 +85,7 @@ class TestBeanDependencyLinkFactory(
         TODO("Not use")
     }
 
-    override fun hasFromNodeParent(link: BeanDependencyLink): Boolean {
+    override fun hasParentOfFromNode(link: BeanDependencyLink): Boolean {
         TODO("Not use")
     }
 
@@ -109,12 +109,15 @@ class TestBeanDependencyLinkFactory(
         return rootNodeNames
     }
 
-    override fun getLinks(): ArrayList<BeanDependencyLink> {
+    override fun getLinks(): List<BeanDependencyLink> {
         return links
     }
 
-    override fun getLinks(name: String): ArrayList<BeanDependencyLink> {
-        return ArrayList(linkMap[name]!!)
+    override fun getLinks(name: String): List<BeanDependencyLink> {
+        if(!linkMap.containsKey(name))
+            return listOf()
+
+        return linkMap[name]!!
     }
 
     override fun getLinkedBeanNames(): Set<String> {
