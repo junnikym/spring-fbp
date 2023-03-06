@@ -1,10 +1,51 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <title>Title</title>
+    <title>...</title>
+
+    <link rel="stylesheet" th:href="@{/assets/css/bean-dependency-node.css}" />
 </head>
 <body>
+    <svg class="bean-dependency-table"
+         width="500vw" height="100vh"
+         xmlns="http://www.w3.org/2000/svg">
 
+        <!--/*@thymesVar id="beansWithLayer" type="kotlin.collections.Collection"*/-->
+        <g class="bean-dependency-layer"
+             th:each="beansInLayer : ${beansWithLayer}">
+
+            <!--/*@thymesVar id="data" type="kotlin.collections.Collection"*/-->
+            <th:block
+                    th:each="bean : ${beansInLayer}"
+                    th:include="fragments/bean-dependency-node :: bean-node(bean)"/>
+        </g>
+    </svg>
+
+    <script>
+        const nodes = getLayer().map(getNodeFromLayer)
+
+        let nodeWidth = 200;
+        let nodeHeight = 50
+        let nodeGap = 10;
+
+        nodes.forEach((list, layer) => organizeNodesInLayer(layer, list))
+
+        function organizeNodesInLayer(layer, nodes) {
+            nodes.forEach((node, idx) => {
+                const x = (nodeGap + nodeWidth) * layer
+                const y = (nodeGap + nodeHeight) * idx
+
+                node.setAttribute('transform', `translate(${x}, ${y})`)
+            });
+        }
+
+        function getLayer() {
+            return [...document.getElementsByClassName("bean-dependency-layer")];
+        }
+        function getNodeFromLayer(layer) {
+            return [...layer.getElementsByClassName("bean-dependency-node")];
+        }
+    </script>
 </body>
 </html>
