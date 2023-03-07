@@ -36,10 +36,15 @@ class LayerQueryServiceImpl (
     }
 
     private fun beanWithLayerOf(beanName: String): BeanWithLayer {
+        val linkedWith: List<String> = beanDependencyLinkFactory
+            .getLinks(beanName)
+            .map { it.from.name }
+
         return BeanWithLayer(
-            beanName,
-            beanLayerFactory.get(beanName)
-        );
+            beanName = beanName,
+            linkedWith = linkedWith,
+            layer = beanLayerFactory.get(beanName),
+        )
     }
 
 }
