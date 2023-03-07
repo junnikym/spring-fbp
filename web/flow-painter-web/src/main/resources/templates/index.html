@@ -4,7 +4,9 @@
     <meta charset="UTF-8">
     <title>...</title>
 
-    <link rel="stylesheet" th:href="@{/assets/css/bean-dependency-node.css}" />
+    <link rel="stylesheet" th:href="@{/assets/css/BeanDependencyNode.css}" />
+
+    <script type="text/javascript" th:src="@{/src/dependency/BeanDependencyNode.js}"></script>
 </head>
 <body>
     <svg class="bean-dependency-table"
@@ -16,36 +18,46 @@
              th:each="beansInLayer : ${beansWithLayer}">
 
             <!--/*@thymesVar id="data" type="kotlin.collections.Collection"*/-->
-            <th:block
-                    th:each="bean : ${beansInLayer}"
-                    th:include="fragments/bean-dependency-node :: bean-node(bean)"/>
+            <th:block th:each="bean : ${beansInLayer}"
+                      th:include="fragments/BeanDependencyNode :: bean-node(bean)"/>
         </g>
     </svg>
 
     <script>
+        const nodeMap = new Map()
         const nodes = getLayer().map(getNodeFromLayer)
 
-        let nodeWidth = 200;
-        let nodeHeight = 50
-        let nodeGap = 10;
+        const nodeGap = 10;
 
-        nodes.forEach((list, layer) => organizeNodesInLayer(layer, list))
+        nodes.forEach((layerList, layerNum) => createNodeInLayer(layerList, layerNum))
 
-        function organizeNodesInLayer(layer, nodes) {
-            nodes.forEach((node, idx) => {
-                const x = (nodeGap + nodeWidth) * layer
-                const y = (nodeGap + nodeHeight) * idx
+        function createNodeInLayer(layerList, layerNum) {
+            layerList.forEach((it, idx) => createNode(it, layerNum, idx))
+        }
+        function createNode(dom, layer, idx) {
+            const x = (nodeGap + BeanDependencyNode.DEFAULT_WIDTH) * layer
+            const y = (nodeGap + BeanDependencyNode.DEFAULT_HEIGHT) * idx
 
-                node.setAttribute('transform', `translate(${x}, ${y})`)
-            });
+            const name = dom.id
+            const loc = new BeanDependencyNode(dom, x, y)
+
+            nodeMap.set(name, loc)
+        }
+
+        function organizeLinkLine(nodes) {
+            nodes.map(getLinkWith)
+                .forEach()
         }
 
         function getLayer() {
-            return [...document.getElementsByClassName("bean-dependency-layer")];
+            return [...document.getElementsByClassName("bean-dependency-layer")]
         }
         function getNodeFromLayer(layer) {
-            return [...layer.getElementsByClassName("bean-dependency-node")];
+            return [...layer.getElementsByClassName("bean-dependency-node")]
         }
+        // function getLinkWith(node) {
+        //     return [...node.getElementsByClassName("link-with")]
+        // }
     </script>
 </body>
 </html>

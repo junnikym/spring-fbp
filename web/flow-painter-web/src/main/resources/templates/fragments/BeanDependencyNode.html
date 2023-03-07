@@ -4,10 +4,17 @@
 
     <th:block th:fragment="bean-node(bean)">
 
-        <g class="bean-dependency-node">
+        <g class="bean-dependency-node"
+           th:id="${bean.beanName}">
 
-            <rect th:x="0" th:y="0"
-                  width="150" height="50"></rect>
+            <g th:each="link : ${bean.linkedWith}">
+                <line class="bean-dependency-link-with"
+                      th:value="${link}"
+                      stroke="black"></line>
+            </g>
+
+            <rect class="bean-dependency-node.body"
+                  x="0" y="0"></rect>
 
             <!--/*@thymesVar id="beanName" type="java.lang.String"*/-->
 <!--            <text x="100" y="100" font-size="10"-->
