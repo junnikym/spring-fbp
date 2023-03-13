@@ -38,7 +38,7 @@ class LayerQueryServiceImpl (
     private fun beanWithLayerOf(beanName: String): BeanWithLayer {
         val linkedWith: List<String> = beanDependencyLinkFactory
             .getLinks(beanName)
-            .map { it.from.name }
+            .map { it.to.name }
 
         return BeanWithLayer(
             beanName = beanName,
