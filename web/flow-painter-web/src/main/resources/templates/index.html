@@ -10,8 +10,9 @@
 </head>
 <body>
     <svg class="bean-dependency-table"
-         width="500vw" height="100vh"
-         xmlns="http://www.w3.org/2000/svg">
+         width="5000px" height="10000px"
+         xmlns="http://www.w3.org/2000/svg"
+         overflow="scroll">
 
         <!--/*@thymesVar id="beansWithLayer" type="kotlin.collections.Collection"*/-->
         <g class="bean-dependency-layer"
@@ -24,29 +25,24 @@
     </svg>
 
     <script>
-        const nodeMap = new Map()
-        const nodes = getLayer().map(getNodeFromLayer)
 
-        const nodeGap = 10;
+        const nodeWidthGap = 100
+        const nodeHeightGap = 10
 
-        nodes.forEach((layerList, layerNum) => createNodeInLayer(layerList, layerNum))
+        getLayer()
+            .map(getNodeFromLayer)
+            .forEach((layerList, layerNum) => createNodeInLayer(layerList, layerNum));
+
+        ([...BeanDependencyNode.nodes.keys()])
+            .forEach(key=> BeanDependencyNode.nodes.get(key).updateLines())
 
         function createNodeInLayer(layerList, layerNum) {
             layerList.forEach((it, idx) => createNode(it, layerNum, idx))
         }
         function createNode(dom, layer, idx) {
-            const x = (nodeGap + BeanDependencyNode.DEFAULT_WIDTH) * layer
-            const y = (nodeGap + BeanDependencyNode.DEFAULT_HEIGHT) * idx
-
-            const name = dom.id
-            const loc = new BeanDependencyNode(dom, x, y)
-
-            nodeMap.set(name, loc)
-        }
-
-        function organizeLinkLine(nodes) {
-            nodes.map(getLinkWith)
-                .forEach()
+            const x = (nodeWidthGap + BeanDependencyNode.DEFAULT_WIDTH) * layer
+            const y = (nodeHeightGap + BeanDependencyNode.DEFAULT_HEIGHT) * idx
+            new BeanDependencyNode(dom, x, y)
         }
 
         function getLayer() {
@@ -55,9 +51,6 @@
         function getNodeFromLayer(layer) {
             return [...layer.getElementsByClassName("bean-dependency-node")]
         }
-        // function getLinkWith(node) {
-        //     return [...node.getElementsByClassName("link-with")]
-        // }
     </script>
 </body>
 </html>

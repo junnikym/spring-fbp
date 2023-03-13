@@ -7,10 +7,15 @@
         <g class="bean-dependency-node"
            th:id="${bean.beanName}">
 
-            <g th:each="link : ${bean.linkedWith}">
-                <line class="bean-dependency-link-with"
-                      th:value="${link}"
-                      stroke="black"></line>
+            <g class="bean-dependency-link">
+                <th:block th:each="link : ${bean.linkedWith}">
+                    <line class="bean-dependency-link.line"
+                          th:value="${link}"
+                          x1="0" y1="0"
+                          x2="100" y2="100"
+                          stroke="black"
+                          style="z-index: 9;"></line>
+                </th:block>
             </g>
 
             <rect class="bean-dependency-node.body"
