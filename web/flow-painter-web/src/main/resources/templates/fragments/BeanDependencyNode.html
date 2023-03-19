@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en"
+      xmlns:th="http://www.thymeleaf.org">
+
+    <th:block th:fragment="bean-node(bean)">
+
+        <g class="bean-dependency-node"
+           th:id="${bean.beanName}">
+
+            <g class="bean-dependency-link">
+                <th:block th:each="link : ${bean.linkedWith}">
+                    <path class="bean-dependency-link.path"
+                          th:value="${link}"
+                          d=""
+                          fill="none"
+                          stroke="black"
+                          stroke-linecap="round"></path>
+                </th:block>
+            </g>
+
+            <svg class="bean-dependency-node.body">
+                <rect x="0" y="0" width="100%" height="100%"></rect>
+                <text font-size="12"
+                      x="50%" y="50%"
+                      alignment-baseline="middle" text-anchor="middle"
+                      class="bean-dependency-node-title"
+                      th:text="${bean.beanName}"
+                      th:alt="${bean.beanName}"></text>
+            </svg>
+        </g>
+    </th:block>
+
+</html>

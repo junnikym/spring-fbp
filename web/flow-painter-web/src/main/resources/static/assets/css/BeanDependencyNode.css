@@ -1,0 +1,25 @@
+:root {
+    --bean-dependency-node__max-width: 320px;
+}
+
+.bean-dependency-table {
+    display: flex;
+    flex-direction: row;
+}
+
+.bean-dependency-layer {
+    display: flex;
+    flex-direction: column;
+}
+
+.bean-dependency-node {
+    position:relative;
+    fill:rgb(0,0,255);
+    stroke-width:3;
+    stroke:rgb(0,0,0)
+}
+
+.bean-dependency-node-title {
+    font-size: 20px;
+    fill: red;
+}
