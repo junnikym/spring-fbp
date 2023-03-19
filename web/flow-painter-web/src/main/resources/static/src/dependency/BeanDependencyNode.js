@@ -5,6 +5,47 @@ class BeanDependencyNode {
     static DEFAULT_HEIGHT = 120
     static DEFAULT_WIDTH  = 240
 
+    static layers
+    static linkLineGap = 10
+    static nodeHorizontalMargin = 0
+    static nodeVerticalMargin = 0
+
+    static initLayers() {
+        BeanDependencyNode.layers = [...document.getElementsByClassName("bean-dependency-layer")]
+        const horizontalGaps = BeanDependencyNode.layers
+                .map(x=> ([...x.getElementsByClassName("bean-dependency-node")]).length)
+                .map(x=> x * BeanDependencyNode.linkLineGap + BeanDependencyNode.nodeHorizontalMargin)
+
+        for(let i = 1; i < horizontalGaps.length; i++) {
+            horizontalGaps[i] += horizontalGaps[i-1]
+        }
+
+        const createNode = (it, layerNum, idx) => {
+            const x = (layerNum===0) ? 0 : horizontalGaps[layerNum-1] + (BeanDependencyNode.DEFAULT_WIDTH * layerNum)
+            const y = (BeanDependencyNode.nodeVerticalMargin + BeanDependencyNode.DEFAULT_HEIGHT) * idx
+            const test = new BeanDependencyNode(it, x, y)
+
+            console.log(test);
+        }
+        const createAllNodeInLayer = (layerList, layerNum) => {
+            layerList.forEach((it, idx) => createNode(it, layerNum, idx))
+        }
+
+        BeanDependencyNode.layers
+                .map(x=> [...x.getElementsByClassName("bean-dependency-node")])
+                .forEach((layerList, layerNum) => createAllNodeInLayer(layerList, layerNum))
+
+        const nodeKeys = ([...BeanDependencyNode.nodes.keys()])
+        nodeKeys.forEach(key=> BeanDependencyNode.nodes.get(key).updateLinkLines())
+    }
+    static setLinkLineGap(gap) {
+        BeanDependencyNode.linkLineGap = gap
+    }
+    static setNodeMargin(horizontalMargin, verticalMargin) {
+        BeanDependencyNode.nodeHorizontalMargin = horizontalMargin
+        BeanDependencyNode.nodeVerticalMargin = verticalMargin
+    }
+
     constructor(
         dom,
         x, y,

@@ -26,42 +26,9 @@
 
     <script>
 
-        const layers = getLayer()
-
-        const nodeWidthGaps = layers
-            .map(x=> getNodeFromLayer(x).length)
-            .map(x=> x * 10 + 100)
-
-        for(let i = 1; i < nodeWidthGaps.length; i++) {
-            nodeWidthGaps[i] += nodeWidthGaps[i-1]
-        }
-
-        const nodeHeightGap = 10
-
-        layers.map(getNodeFromLayer)
-            .forEach((layerList, layerNum) => createNodeInLayer(layerList, layerNum));
-
-        ([...BeanDependencyNode.nodes.keys()])
-            .forEach(key=> BeanDependencyNode.nodes.get(key).updateLines())
-
-        function createNodeInLayer(layerList, layerNum) {
-            layerList.forEach((it, idx) => createNode(it, layerNum, idx))
-        }
-        function createNode(dom, layer, idx) {
-            const x = (layer===0) ? 0 : nodeWidthGaps[layer-1] + (BeanDependencyNode.DEFAULT_WIDTH * layer)
-            const y = (nodeHeightGap + BeanDependencyNode.DEFAULT_HEIGHT) * idx
-            new BeanDependencyNode(dom, x, y)
-        }
-
-        function getLayer() {
-            return [...document.getElementsByClassName("bean-dependency-layer")]
-        }
-        function getNodeFromLayer(layer) {
-            return [...layer.getElementsByClassName("bean-dependency-node")]
-        }
-        function getLinkGroupsInLayer(layer) {
-            return [...layer.getElementsByClassName("bean-dependency-link")]
-        }
+	    BeanDependencyNode.setNodeMargin(100, 10)
+	    BeanDependencyNode.setLinkLineGap(10)
+	    BeanDependencyNode.initLayers()
     </script>
 </body>
 </html>
