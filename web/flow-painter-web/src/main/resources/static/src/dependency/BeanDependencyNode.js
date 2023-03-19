@@ -23,9 +23,7 @@ class BeanDependencyNode {
         const createNode = (it, layerNum, idx) => {
             const x = (layerNum===0) ? 0 : horizontalGaps[layerNum-1] + (BeanDependencyNode.DEFAULT_WIDTH * layerNum)
             const y = (BeanDependencyNode.nodeVerticalMargin + BeanDependencyNode.DEFAULT_HEIGHT) * idx
-            const test = new BeanDependencyNode(it, x, y)
-
-            console.log(test);
+            new BeanDependencyNode(it, x, y)
         }
         const createAllNodeInLayer = (layerList, layerNum) => {
             layerList.forEach((it, idx) => createNode(it, layerNum, idx))
