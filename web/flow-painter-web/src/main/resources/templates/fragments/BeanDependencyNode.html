@@ -9,12 +9,12 @@
 
             <g class="bean-dependency-link">
                 <th:block th:each="link : ${bean.linkedWith}">
-                    <line class="bean-dependency-link.line"
+                    <path class="bean-dependency-link.path"
                           th:value="${link}"
-                          x1="0" y1="0"
-                          x2="100" y2="100"
+                          d=""
+                          fill="none"
                           stroke="black"
-                          style="z-index: 9;"></line>
+                          stroke-linecap="round"></path>
                 </th:block>
             </g>
 
