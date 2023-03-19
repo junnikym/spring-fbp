@@ -18,14 +18,15 @@
                 </th:block>
             </g>
 
-            <rect class="bean-dependency-node.body"
-                  x="0" y="0"></rect>
-
-            <!--/*@thymesVar id="beanName" type="java.lang.String"*/-->
-<!--            <text x="100" y="100" font-size="10"-->
-<!--                  class="bean-dependency-node-title"-->
-<!--                  th:text="${bean.beanName}"-->
-<!--                  th:alt="${bean.beanName}"></text>-->
+            <svg class="bean-dependency-node.body">
+                <rect x="0" y="0" width="100%" height="100%"></rect>
+                <text font-size="12"
+                      x="50%" y="50%"
+                      alignment-baseline="middle" text-anchor="middle"
+                      class="bean-dependency-node-title"
+                      th:text="${bean.beanName}"
+                      th:alt="${bean.beanName}"></text>
+            </svg>
         </g>
     </th:block>
 
