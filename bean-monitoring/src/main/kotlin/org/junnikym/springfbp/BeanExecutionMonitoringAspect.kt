@@ -2,10 +2,10 @@ package org.junnikym.springfbp
 
 import org.aopalliance.intercept.MethodInterceptor
 import org.aopalliance.intercept.MethodInvocation
-import org.springframework.stereotype.Component
 
-@Component
-class BeanExecutionMonitoringAspect : MethodInterceptor {
+class BeanExecutionMonitoringAspect(
+        private val beanMonitoringTargetUtilService: BeanMonitoringTargetUtilService,
+) : MethodInterceptor {
 
     override fun invoke(invocation: MethodInvocation): Any? {
         println(" - method start - ");
