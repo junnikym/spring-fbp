@@ -2,17 +2,35 @@ package org.junnikym.springfbp
 
 import org.aopalliance.intercept.MethodInterceptor
 import org.aopalliance.intercept.MethodInvocation
+import java.lang.reflect.Method
 
 class BeanExecutionMonitoringAspect(
         private val beanMonitoringTargetUtilService: BeanMonitoringTargetUtilService,
+        private val bean: Any,
 ) : MethodInterceptor {
 
     override fun invoke(invocation: MethodInvocation): Any? {
-        println(" - method start - ");
-        val result = invocation.proceed();
-        println(result)
-        println(" - method end - ");
+        val info = BeanMonitoringInfo(bean, invocation.method, getTargetMethodFrom(invocation.method))
+        val result = invocation.proceed()
+        info.exit()
         return result;
+    }
+
+    private fun getTargetMethodFrom(method: Method): Any? {
+        val stackTrace = Thread.currentThread().stackTrace
+                .filter { beanMonitoringTargetUtilService.isInBasePackage(it.className) }
+                .filter { beanMonitoringTargetUtilService.isIgnoreMonitoring(Class.forName(it.className)).not() }
+
+        val currentMethodIndex = stackTrace.indexOfFirst {
+            val eqClass = it.className.startsWith(method.declaringClass.name)
+            val eqName = it.methodName == method.name
+            eqClass && eqName
+        }
+
+        if(currentMethodIndex <= 0 || stackTrace.size-1 <= currentMethodIndex)
+            return null;
+
+        return stackTrace[currentMethodIndex+1]
     }
 
 }
