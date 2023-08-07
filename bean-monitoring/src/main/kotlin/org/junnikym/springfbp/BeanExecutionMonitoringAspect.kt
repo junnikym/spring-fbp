@@ -5,7 +5,7 @@ import org.aopalliance.intercept.MethodInvocation
 import java.lang.reflect.Method
 
 class BeanExecutionMonitoringAspect(
-        private val beanMonitoringTargetUtilService: BeanMonitoringTargetUtilService,
+        private val beanManagingTargetFilter: BeanManagingTargetFilter,
         private val bean: Any,
 ) : MethodInterceptor {
 
@@ -18,8 +18,8 @@ class BeanExecutionMonitoringAspect(
 
     private fun getTargetMethodFrom(method: Method): Any? {
         val stackTrace = Thread.currentThread().stackTrace
-                .filter { beanMonitoringTargetUtilService.isInBasePackage(it.className) }
-                .filter { beanMonitoringTargetUtilService.isIgnoreMonitoring(Class.forName(it.className)).not() }
+                .filter { beanManagingTargetFilter.isInBasePackage(it.className) }
+                .filter { beanManagingTargetFilter.isIgnoreManage(Class.forName(it.className)).not() }
 
         val currentMethodIndex = stackTrace.indexOfFirst {
             val eqClass = it.className.startsWith(method.declaringClass.name)

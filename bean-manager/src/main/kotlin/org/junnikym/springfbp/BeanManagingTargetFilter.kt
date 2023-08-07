@@ -2,15 +2,18 @@ package org.junnikym.springfbp
 
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.autoconfigure.SpringBootApplication
-import org.springframework.stereotype.Service
+import org.springframework.stereotype.Component
+import kotlin.reflect.KClass
 
-@Service
-class BeanMonitoringTargetUtilService (
+@Component
+class BeanManagingTargetFilter (
         @Value("\${spring.fbp.base-package}") private val basePackage: String
 ) {
 
-    fun isMonitoringTarget(beanClass: Class<*>): Boolean {
-        return isInBasePackage(beanClass) && !isIgnoreMonitoring(beanClass)
+    fun isManageTarget(beanClass: KClass<*>): Boolean = isManageTarget(beanClass.java)
+
+    fun isManageTarget(beanClass: Class<*>): Boolean {
+        return isInBasePackage(beanClass) && !isIgnoreManage(beanClass)
     }
 
     fun isInBasePackage(beanClassName: String): Boolean {
@@ -21,10 +24,10 @@ class BeanMonitoringTargetUtilService (
         return isInBasePackage(beanClass.`package`.name)
     }
 
-    fun isIgnoreMonitoring(beanClass: Class<*>): Boolean {
+    fun isIgnoreManage(beanClass: Class<*>): Boolean {
         return beanClass.annotations.any {
             when(it.annotationClass) {
-                SpringBootApplication::class, IgnoreMonitoring::class -> true
+                SpringBootApplication::class, IgnoreManage::class -> true
                 else -> false
             }
         }
