@@ -2,6 +2,17 @@
     --bean-dependency-node__max-width: 320px;
 }
 
+@font-face {
+    font-family: 'intelone-mono-font-family-regular';
+    src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_2307-1@1.1/intelone-mono-font-family-regular.woff2') format('woff2');
+    font-weight: 400;
+    font-style: normal;
+}
+
+body {
+    font-family: 'intelone-mono-font-family-regular';
+}
+
 .bean-dependency-table {
     display: flex;
     flex-direction: row;
@@ -13,13 +24,8 @@
 }
 
 .bean-dependency-node {
-    position:relative;
-    fill:rgb(0,0,255);
-    stroke-width:3;
-    stroke:rgb(0,0,0)
-}
-
-.bean-dependency-node-title {
-    font-size: 20px;
-    fill: red;
+    position: relative;
+    fill: rgb(255, 255, 255);
+    stroke-width: 1.5;
+    stroke: rgb(0, 0, 0);
 }

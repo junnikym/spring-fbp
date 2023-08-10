@@ -7,9 +7,21 @@
         <g class="bean-dependency-node"
            th:id="${bean.beanName}">
 
-            <g class="bean-dependency-link">
+            <svg class="bean-dependency-node.body" th:id="${bean.beanName}">
+                <rect x="0" y="0" rx="10" ry="10" width="100%" height="100%"></rect>
+                <text class="bean-dependency-node.title"
+                      font-size="12"
+                      x="50%" y="50%"
+                      alignment-baseline="middle" text-anchor="middle"
+                      th:text="${bean.beanName}"
+                      th:alt="${bean.beanName}"></text>
+                </text>
+    <!--                <circle cx="300" cy="500" r="50" fill="none" stroke="#f9b10a" stroke-width="14" />-->
+            </svg>
+
+            <g class="bean-dependency-node.link">
                 <th:block th:each="link : ${bean.linkedWith}">
-                    <path class="bean-dependency-link.path"
+                    <path class="bean-dependency-node.link.path"
                           th:value="${link}"
                           d=""
                           fill="none"
@@ -18,16 +30,17 @@
                 </th:block>
             </g>
 
-            <svg class="bean-dependency-node.body">
-                <rect x="0" y="0" width="100%" height="100%"></rect>
-                <text font-size="12"
-                      x="50%" y="50%"
-                      alignment-baseline="middle" text-anchor="middle"
-                      class="bean-dependency-node-title"
-                      th:text="${bean.beanName}"
-                      th:alt="${bean.beanName}"></text>
-            </svg>
+            <circle class="bean-dependency-node.link-anchor.left"
+                    cx="0" cy="0" r="10"
+                    fill="white" stroke="#f9b10a" stroke-width="4"
+                    style=""
+            />
+            <circle class="bean-dependency-node.link-anchor.right"
+                    cx="0" cy="0" r="10"
+                    fill="white" stroke="#f9b10a" stroke-width="4" />
+
         </g>
+
     </th:block>
 
 </html>
