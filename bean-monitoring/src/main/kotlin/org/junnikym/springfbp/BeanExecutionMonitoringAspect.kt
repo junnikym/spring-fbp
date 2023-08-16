@@ -10,13 +10,17 @@ class BeanExecutionMonitoringAspect(
 ) : MethodInterceptor {
 
     override fun invoke(invocation: MethodInvocation): Any? {
-        val info = BeanMonitoringInfo(bean, invocation.method, getTargetMethodFrom(invocation.method))
+        val event = BeanEvent(
+                bean = bean,
+                from = getTargetMethodFrom(invocation.method),
+                method = invocation.method,
+        )
         val result = invocation.proceed()
         info.exit()
         return result;
     }
 
-    private fun getTargetMethodFrom(method: Method): Any? {
+    private fun getTargetMethodFrom(method: Method): StackTraceElement? {
         val stackTrace = Thread.currentThread().stackTrace
                 .filter { beanManagingTargetFilter.isInBasePackage(it.className) }
                 .filter { beanManagingTargetFilter.isIgnoreManage(Class.forName(it.className)).not() }
