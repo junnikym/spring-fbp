@@ -7,6 +7,7 @@ import org.springframework.context.annotation.Configuration
 @Configuration
 class BeanMonitoringAspectConfig(
         private val beanManagingTargetFilter: BeanManagingTargetFilter,
+        private val beanExecutionMonitoringService: BeanExecutionMonitoringService,
 ) : BeanPostProcessor {
 
     override fun postProcessAfterInitialization(bean: Any, beanName: String): Any? {
@@ -25,7 +26,7 @@ class BeanMonitoringAspectConfig(
     private fun createProxy(bean: Any): Any {
         println(bean.javaClass.name)
         val proxyFactory = ProxyFactory(bean)
-        val aspect = BeanExecutionMonitoringAspect(beanManagingTargetFilter, bean)
+        val aspect = BeanExecutionMonitoringAspect(bean, beanManagingTargetFilter, beanExecutionMonitoringService)
         proxyFactory.addAdvice(aspect)
         return proxyFactory.proxy
     }

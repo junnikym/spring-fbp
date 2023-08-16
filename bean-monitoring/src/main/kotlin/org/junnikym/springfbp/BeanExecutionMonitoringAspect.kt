@@ -5,8 +5,9 @@ import org.aopalliance.intercept.MethodInvocation
 import java.lang.reflect.Method
 
 class BeanExecutionMonitoringAspect(
-        private val beanManagingTargetFilter: BeanManagingTargetFilter,
         private val bean: Any,
+        private val beanManagingTargetFilter: BeanManagingTargetFilter,
+        private val beanExecutionMonitoringService: BeanExecutionMonitoringService,
 ) : MethodInterceptor {
 
     override fun invoke(invocation: MethodInvocation): Any? {
@@ -15,8 +16,11 @@ class BeanExecutionMonitoringAspect(
                 from = getTargetMethodFrom(invocation.method),
                 method = invocation.method,
         )
+        beanExecutionMonitoringService.execute(event)
+
         val result = invocation.proceed()
-        info.exit()
+
+        beanExecutionMonitoringService.exit(event)
         return result;
     }
 
@@ -31,7 +35,7 @@ class BeanExecutionMonitoringAspect(
             eqClass && eqName
         }
 
-        if(currentMethodIndex <= 0 || stackTrace.size-1 <= currentMethodIndex)
+        if(currentMethodIndex < 0 || stackTrace.size-1 <= currentMethodIndex)
             return null;
 
         return stackTrace[currentMethodIndex+1]

@@ -13,6 +13,9 @@ plugins {
 
 dependencies {
     implementation("org.springframework.boot:spring-boot-starter-aop")
+    implementation("io.projectreactor:reactor-core")
+
+    implementation(project(":core"))
     implementation(project(":bean-manager"))
 }
 
