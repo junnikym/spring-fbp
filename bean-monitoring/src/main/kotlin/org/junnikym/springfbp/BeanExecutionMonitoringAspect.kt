@@ -11,6 +11,7 @@ class BeanExecutionMonitoringAspect(
 ) : MethodInterceptor {
 
     override fun invoke(invocation: MethodInvocation): Any? {
+
         val event = BeanEvent(
                 bean = bean,
                 from = getTargetMethodFrom(invocation.method),

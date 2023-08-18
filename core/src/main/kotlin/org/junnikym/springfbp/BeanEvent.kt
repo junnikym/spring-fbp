@@ -37,10 +37,12 @@ class BeanEventSerializer: JsonSerializer<BeanEvent>() {
     }
 
     data class BeanWrapper(
-            val className: String
+            val className: String,
+            val classSimpleName: String
     ) {
         constructor(obj: Any) : this(
-                className = obj::class.qualifiedName!!
+                className = obj::class.qualifiedName!!,
+                classSimpleName = obj::class.simpleName!!,
         )
     }
 
