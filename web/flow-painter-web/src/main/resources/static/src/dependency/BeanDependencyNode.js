@@ -66,7 +66,14 @@ class BeanDependencyNode {
         this.dom = dom
 
         this.bodyDom = dom.getElementsByClassName("bean-dependency-node.body")[0]
-        this.linkDoms = [...dom.getElementsByClassName("bean-dependency-node.link.path")]
+        this.linkDoms = [...dom.getElementsByClassName("bean-dependency-node.link.path")].reduce((map, it) => {
+                const key = it.getAttribute("class-qualified-name")
+                if(!key)
+                    return map
+
+                map.set(key, it);
+                return map;
+        }, new Map);
 
         this.leftLinkAnchor = dom.getElementsByClassName("bean-dependency-node.link-anchor.left")[0]
         this.rightLinkAnchor = dom.getElementsByClassName("bean-dependency-node.link-anchor.right")[0]
@@ -92,17 +99,18 @@ class BeanDependencyNode {
 
         const x = this.centerInGroup.x + (this.width/2)
         const y = this.centerInGroup.y
-        group.setAttribute('transform', `translate(${x}, ${y})`)
+
         this.leftLinkAnchor.setAttribute('transform', `translate(0, ${y})`)
         this.rightLinkAnchor.setAttribute('transform', `translate(${x}, ${y})`)
 
         this.linkDoms.forEach(line=> {
-            const targetId = line.getAttribute("value")
+            const targetId = line.getAttribute("class-qualified-name")
             if(!this.linkCorners.has(targetId))
                 return
 
             const pathAttr = this.getLinkLinePath(targetId);
             line.setAttribute("d", pathAttr)
+            line.setAttribute('transform', `translate(${x}, ${y})`)
         })
     }
 
@@ -119,7 +127,7 @@ class BeanDependencyNode {
     updateLinkCorners() {
         this.linkCorners = new Map()
         this.linkDoms.forEach(line=> {
-            const targetId = line.getAttribute("value")
+            const targetId = line.getAttribute("class-qualified-name")
             if(!BeanDependencyNode.nodes.has(targetId))
                 return
 
@@ -147,4 +155,5 @@ class BeanDependencyNode {
 
         return [from, topConner, bottomConner, to];
     }
+
 }
