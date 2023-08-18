@@ -6,8 +6,10 @@ import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory
 import org.springframework.boot.test.context.SpringBootTest
+import org.springframework.test.context.TestPropertySource
 
 @SpringBootTest
+@TestPropertySource(locations= ["classpath:test.properties"])
 class DefaultBeanDependencyLinkFactoryTest(
     @Autowired private val beanFactory: ConfigurableListableBeanFactory,
 ) {
