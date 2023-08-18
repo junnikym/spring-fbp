@@ -23,7 +23,9 @@ dependencies {
 
     // Modules in project
 
+    implementation(project(":core"))
     implementation(project(":bean-manager"))
+    implementation(project(":bean-monitoring"))
 }
 
 

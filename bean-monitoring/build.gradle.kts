@@ -12,11 +12,11 @@ plugins {
 }
 
 dependencies {
-    implementation("org.jetbrains.kotlin:kotlin-stdlib")
-	implementation("org.jetbrains.kotlin:kotlin-reflect")
+    implementation("org.springframework.boot:spring-boot-starter-aop")
+    implementation("io.projectreactor:reactor-core")
 
-    implementation("org.springframework.boot:spring-boot-starter")
-    testImplementation("org.springframework.boot:spring-boot-starter-test")
+    implementation(project(":core"))
+    implementation(project(":bean-manager"))
 }
 
 

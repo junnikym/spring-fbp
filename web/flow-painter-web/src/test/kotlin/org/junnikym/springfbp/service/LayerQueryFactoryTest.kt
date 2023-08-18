@@ -6,8 +6,10 @@ import org.junnikym.springfbp.beans.TestBeanDependencyLinkFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory
 import org.springframework.boot.test.context.SpringBootTest
+import org.springframework.test.context.TestPropertySource
 
 @SpringBootTest
+@TestPropertySource(locations= ["classpath:test.properties"])
 class LayerQueryFactoryTest(
     @Autowired beanFactory: ConfigurableListableBeanFactory,
     @Autowired beanLayerFactory: BeanLayerFactory
