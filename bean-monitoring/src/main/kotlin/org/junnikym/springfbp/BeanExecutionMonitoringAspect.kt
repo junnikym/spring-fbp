@@ -5,21 +5,30 @@ import org.aopalliance.intercept.MethodInvocation
 import java.lang.reflect.Method
 
 class BeanExecutionMonitoringAspect(
-        private val beanMonitoringTargetUtilService: BeanMonitoringTargetUtilService,
         private val bean: Any,
+        private val beanManagingTargetFilter: BeanManagingTargetFilter,
+        private val beanExecutionMonitoringService: BeanExecutionMonitoringService,
 ) : MethodInterceptor {
 
     override fun invoke(invocation: MethodInvocation): Any? {
-        val info = BeanMonitoringInfo(bean, invocation.method, getTargetMethodFrom(invocation.method))
+
+        val event = BeanEvent(
+                bean = bean,
+                from = getTargetMethodFrom(invocation.method),
+                method = invocation.method,
+        )
+        beanExecutionMonitoringService.execute(event)
+
         val result = invocation.proceed()
-        info.exit()
+
+        beanExecutionMonitoringService.exit(event)
         return result;
     }
 
-    private fun getTargetMethodFrom(method: Method): Any? {
+    private fun getTargetMethodFrom(method: Method): StackTraceElement? {
         val stackTrace = Thread.currentThread().stackTrace
-                .filter { beanMonitoringTargetUtilService.isInBasePackage(it.className) }
-                .filter { beanMonitoringTargetUtilService.isIgnoreMonitoring(Class.forName(it.className)).not() }
+                .filter { beanManagingTargetFilter.isInBasePackage(it.className) }
+                .filter { beanManagingTargetFilter.isIgnoreManage(Class.forName(it.className)).not() }
 
         val currentMethodIndex = stackTrace.indexOfFirst {
             val eqClass = it.className.startsWith(method.declaringClass.name)
@@ -27,7 +36,7 @@ class BeanExecutionMonitoringAspect(
             eqClass && eqName
         }
 
-        if(currentMethodIndex <= 0 || stackTrace.size-1 <= currentMethodIndex)
+        if(currentMethodIndex < 0 || stackTrace.size-1 <= currentMethodIndex)
             return null;
 
         return stackTrace[currentMethodIndex+1]

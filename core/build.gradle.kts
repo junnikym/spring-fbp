@@ -12,11 +12,9 @@ plugins {
 }
 
 dependencies {
-    implementation("org.springframework.boot:spring-boot-starter-aop")
-    implementation("io.projectreactor:reactor-core")
-
-    implementation(project(":core"))
-    implementation(project(":bean-manager"))
+    implementation("org.jetbrains.kotlin:kotlin-stdlib")
+    implementation("org.jetbrains.kotlin:kotlin-reflect")
+    implementation("com.fasterxml.jackson.core:jackson-databind")
 }
 
 

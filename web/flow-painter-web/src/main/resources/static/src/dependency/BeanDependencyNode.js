@@ -66,16 +66,24 @@ class BeanDependencyNode {
         this.dom = dom
 
         this.bodyDom = dom.getElementsByClassName("bean-dependency-node.body")[0]
-        this.linkDoms = [...dom.getElementsByClassName("bean-dependency-link.path")]
+        this.linkDoms = [...dom.getElementsByClassName("bean-dependency-node.link.path")].reduce((map, it) => {
+                const key = it.getAttribute("class-qualified-name")
+                if(!key)
+                    return map
+
+                map.set(key, it);
+                return map;
+        }, new Map);
+
+        this.leftLinkAnchor = dom.getElementsByClassName("bean-dependency-node.link-anchor.left")[0]
+        this.rightLinkAnchor = dom.getElementsByClassName("bean-dependency-node.link-anchor.right")[0]
 
         this.init()
         BeanDependencyNode.nodes.set(dom.id, this)
     }
 
     init() {
-        this.dom.setAttribute(
-            'transform', `translate(${this.x}, ${this.y})`
-        )
+        this.dom.setAttribute('transform', `translate(${this.x}, ${this.y})`)
         this.applySize();
     }
 
@@ -87,26 +95,29 @@ class BeanDependencyNode {
     updateLinkLines() {
         this.updateLinkCorners()
 
-        const group = this.dom.getElementsByClassName("bean-dependency-link")[0]
-        group.setAttribute(
-            'transform',
-            `translate(${this.centerInGroup.x}, ${this.centerInGroup.y})`
-        )
+        const group = this.dom.getElementsByClassName("bean-dependency-node.link")[0]
+
+        const x = this.centerInGroup.x + (this.width/2)
+        const y = this.centerInGroup.y
+
+        this.leftLinkAnchor.setAttribute('transform', `translate(0, ${y})`)
+        this.rightLinkAnchor.setAttribute('transform', `translate(${x}, ${y})`)
 
         this.linkDoms.forEach(line=> {
-            const targetId = line.getAttribute("value")
+            const targetId = line.getAttribute("class-qualified-name")
             if(!this.linkCorners.has(targetId))
                 return
 
             const pathAttr = this.getLinkLinePath(targetId);
             line.setAttribute("d", pathAttr)
+            line.setAttribute('transform', `translate(${x}, ${y})`)
         })
     }
 
     getLinkLinePath(targetId) {
         let result = ''
         this.linkCorners.get(targetId).forEach((it, idx)=> {
-            let type = idx===0 ? 'M' : 'L'
+            let type = idx===0 ? 'M' : idx===1 ? 'C' : ','
             result += `${type} ${it.x} ${it.y} `
         })
 
@@ -116,7 +127,7 @@ class BeanDependencyNode {
     updateLinkCorners() {
         this.linkCorners = new Map()
         this.linkDoms.forEach(line=> {
-            const targetId = line.getAttribute("value")
+            const targetId = line.getAttribute("class-qualified-name")
             if(!BeanDependencyNode.nodes.has(targetId))
                 return
 
@@ -129,8 +140,8 @@ class BeanDependencyNode {
         const target = BeanDependencyNode.nodes.get(targetId)
         const from = { x: 0, y: 0 }
         const to = {
-            x: target.center.x-this.center.x,
-            y: target.center.y-this.center.y
+            x: (target.center.x/2) - this.center.x,
+            y: target.center.y - this.center.y
         }
 
         const topConner = {
@@ -144,4 +155,5 @@ class BeanDependencyNode {
 
         return [from, topConner, bottomConner, to];
     }
+
 }

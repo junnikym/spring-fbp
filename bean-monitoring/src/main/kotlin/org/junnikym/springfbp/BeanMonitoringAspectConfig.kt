@@ -6,11 +6,12 @@ import org.springframework.context.annotation.Configuration
 
 @Configuration
 class BeanMonitoringAspectConfig(
-        private val beanMonitoringTargetUtilService: BeanMonitoringTargetUtilService,
+        private val beanManagingTargetFilter: BeanManagingTargetFilter,
+        private val beanExecutionMonitoringService: BeanExecutionMonitoringService,
 ) : BeanPostProcessor {
 
     override fun postProcessAfterInitialization(bean: Any, beanName: String): Any? {
-        val isTarget = beanMonitoringTargetUtilService.isMonitoringTarget(bean.javaClass)
+        val isTarget = beanManagingTargetFilter.isManageTarget(bean::class)
         val proxyBean = if(isTarget) createProxy(bean) else bean
 
         return super.postProcessAfterInitialization(proxyBean, beanName)
@@ -25,7 +26,7 @@ class BeanMonitoringAspectConfig(
     private fun createProxy(bean: Any): Any {
         println(bean.javaClass.name)
         val proxyFactory = ProxyFactory(bean)
-        val aspect = BeanExecutionMonitoringAspect(beanMonitoringTargetUtilService, bean)
+        val aspect = BeanExecutionMonitoringAspect(bean, beanManagingTargetFilter, beanExecutionMonitoringService)
         proxyFactory.addAdvice(aspect)
         return proxyFactory.proxy
     }

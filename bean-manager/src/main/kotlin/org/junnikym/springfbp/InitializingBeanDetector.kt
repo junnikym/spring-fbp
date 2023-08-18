@@ -5,19 +5,12 @@ import org.springframework.beans.factory.config.ConfigurableListableBeanFactory
 import org.springframework.context.annotation.Configuration
 
 @Configuration
-class InitializingBeanDetector : InitializingBean {
-
-    private val beanFactory: ConfigurableListableBeanFactory;
-
-    private val linkFactory: BeanDependencyLinkFactory;
-
-    constructor(
-        beanFactory: ConfigurableListableBeanFactory,
-        linkFactory: BeanDependencyLinkFactory
-    ) {
-        this.beanFactory = beanFactory;
-        this.linkFactory = linkFactory;
-    }
+@IgnoreManage
+class InitializingBeanDetector(
+        private val beanFactory: ConfigurableListableBeanFactory,
+        private val linkFactory: BeanDependencyLinkFactory,
+        private val beanManagingTargetFilter: BeanManagingTargetFilter,
+) : InitializingBean {
 
     override fun afterPropertiesSet() {
         beanFactory.beanDefinitionNames
@@ -41,11 +34,10 @@ class InitializingBeanDetector : InitializingBean {
             return null;
 
         val bean = beanFactory.getBean(beanName);
-        if(bean.javaClass.`package`.equals(this.javaClass.`package`))
+        if(!beanManagingTargetFilter.isManageTarget(bean::class))
             return null;
 
         val definition = beanFactory.getBeanDefinition(beanName);
-
         return BeanDependencyNode(beanName, bean, definition);
     }
 

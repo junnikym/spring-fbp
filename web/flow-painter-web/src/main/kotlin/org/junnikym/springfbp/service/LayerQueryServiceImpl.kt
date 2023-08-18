@@ -2,13 +2,16 @@ package org.junnikym.springfbp.service
 
 import org.junnikym.springfbp.BeanDependencyLinkFactory
 import org.junnikym.springfbp.BeanWithLayer
+import org.springframework.aop.framework.AopProxyUtils
+import org.springframework.beans.factory.config.ConfigurableListableBeanFactory
 import org.springframework.stereotype.Service
 import java.util.stream.Collectors
 
 @Service
 class LayerQueryServiceImpl (
-    private val beanDependencyLinkFactory: BeanDependencyLinkFactory,
-    private val beanLayerFactory: BeanLayerFactory
+        private val beanFactory: ConfigurableListableBeanFactory,
+        private val beanDependencyLinkFactory: BeanDependencyLinkFactory,
+        private val beanLayerFactory: BeanLayerFactory
 ): LayerQueryService {
 
     override fun get(): List<List<BeanWithLayer>> {
@@ -36,14 +39,25 @@ class LayerQueryServiceImpl (
     }
 
     private fun beanWithLayerOf(beanName: String): BeanWithLayer {
-        val linkedWith: List<String> = beanDependencyLinkFactory
-            .getLinks(beanName)
-            .map { it.to.name }
+        val linkedWith = beanDependencyLinkFactory
+                .getLinks(beanName)
+                .map {
+                    val cls = AopProxyUtils.ultimateTargetClass(it.to.bean)
+                    BeanWithLayer.LinkedBean (
+                            beanName = it.to.name,
+                            beanClassQualifiedName = cls.name,
+                            beanClassSimpleName = cls.simpleName
+                    )
+                }
+
+        val beanClass = AopProxyUtils.ultimateTargetClass(beanFactory.getBean(beanName))
 
         return BeanWithLayer(
-            beanName = beanName,
-            linkedWith = linkedWith,
-            layer = beanLayerFactory.get(beanName),
+                beanName = beanName,
+                beanClassQualifiedName = beanClass.name,
+                beanClassSimpleName = beanClass.simpleName,
+                linkedWith = linkedWith,
+                layer = beanLayerFactory.get(beanName),
         )
     }
 
