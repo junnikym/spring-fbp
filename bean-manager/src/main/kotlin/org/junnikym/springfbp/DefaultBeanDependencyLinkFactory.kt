@@ -41,12 +41,12 @@ class DefaultBeanDependencyLinkFactory : BeanDependencyLinkFactory {
     }
 
     private fun addToLinkMap(link: BeanDependencyLink) {
-        val name = link.from.name
+        val name = link.to.name
         addToMap(name, link, linkMap)
     }
 
     private fun addToReverseLinkMap(link: BeanDependencyLink) {
-        val name = link.to.name
+        val name = link.from.name
         addToMap(name, link, reverseLinkMap)
     }
 

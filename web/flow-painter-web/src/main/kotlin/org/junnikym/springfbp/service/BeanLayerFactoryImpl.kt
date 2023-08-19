@@ -50,7 +50,7 @@ class BeanLayerFactoryImpl(
 
         // next step
         beanDependencyLinkFactory.getLinks(beanName)
-            .forEach { searchLinkBranch(layer+1, it.to.name, newLayerMap, histories) }
+            .forEach { searchLinkBranch(layer+1, it.from.name, newLayerMap, histories) }
 
         histories.remove(beanName)
     }
