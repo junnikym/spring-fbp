@@ -61,13 +61,18 @@ class DefaultBeanDependencyLinkFactory : BeanDependencyLinkFactory {
     }
 
     private fun updateRootNodeNames(link: BeanDependencyLink) {
-        rootNodeNameSet
-            .filter(::hasParent)
-            .forEach(rootNodeNameSet::remove)
+        // [ remove 'from' in rootSet ]
+        if(rootNodeNameSet.contains(link.from.name))
+            rootNodeNameSet.remove(link.from.name)
 
-        // add new node (or not);
-        if(!hasParentOfFromNode(link))
-            rootNodeNameSet.add(link.from.name)
+        // [ Add to rootSet ]
+        // If 'to' has parent when 'to' is 'from', 'to' can't to be root
+        val isVerifiedNotRoot = reverseLinkMap[link.to.name]?.size?.let { it > 0 } ?: false
+        if(isVerifiedNotRoot)
+            return
+
+        // Add 'to' on rootSet
+        rootNodeNameSet.add(link.to.name)
     }
 
 
