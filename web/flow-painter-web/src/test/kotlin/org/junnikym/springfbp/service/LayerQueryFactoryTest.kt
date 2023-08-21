@@ -2,28 +2,21 @@ package org.junnikym.springfbp.service
 
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
-import org.junnikym.springfbp.beans.TestBeanDependencyLinkFactory
+import org.junnikym.springfbp.beans.TestFactoryProvider
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.beans.factory.config.ConfigurableListableBeanFactory
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.test.context.TestPropertySource
 
 @SpringBootTest
 @TestPropertySource(locations= ["classpath:test.properties"])
 class LayerQueryFactoryTest(
-    @Autowired beanFactory: ConfigurableListableBeanFactory,
-    @Autowired beanLayerFactory: BeanLayerFactory
+        @Autowired testFactoryProvider: TestFactoryProvider,
 ) {
 
     private val beanLayerFactory: BeanLayerFactory;
 
     init {
-        val linkFactory = TestBeanDependencyLinkFactory(beanFactory)
-        this.beanLayerFactory = beanLayerFactory
-            .javaClass
-            .constructors[0]
-            .newInstance(linkFactory) as BeanLayerFactory;
-
+        this.beanLayerFactory = testFactoryProvider.layerFactoryOf()
         this.beanLayerFactory.update()
     }
 

@@ -3,7 +3,7 @@ package org.junnikym.springfbp.service
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
-import org.junnikym.springfbp.beans.TestBeanDependencyLinkFactory
+import org.junnikym.springfbp.beans.TestFactoryProvider
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory
 import org.springframework.boot.test.context.SpringBootTest
@@ -12,24 +12,25 @@ import org.springframework.test.context.TestPropertySource
 @SpringBootTest
 @TestPropertySource(locations= ["classpath:test.properties"])
 class LayerQueryServiceTest(
-    @Autowired beanFactory: ConfigurableListableBeanFactory,
-    @Autowired beanLayerFactory: BeanLayerFactory,
-    @Autowired layerQueryService: LayerQueryService,
+        @Autowired beanFactory: ConfigurableListableBeanFactory,
+        @Autowired testFactoryProvider: TestFactoryProvider,
+        @Autowired layerQueryService: LayerQueryService,
 ) {
 
     private val layerQueryService: LayerQueryService
 
     init {
-        val linkFactory = TestBeanDependencyLinkFactory(beanFactory)
-        val layerFactory = beanLayerFactory
-            .javaClass
-            .constructors[0]
-            .newInstance(linkFactory) as BeanLayerFactory
+        val layerFactory = testFactoryProvider.layerFactoryOf()
 
         this.layerQueryService = layerQueryService
             .javaClass
             .constructors[0]
-            .newInstance(beanFactory, linkFactory, layerFactory) as LayerQueryService
+            .newInstance(
+                    beanFactory,
+                    testFactoryProvider.linkFactoryOf(),
+                    testFactoryProvider.nodeFactoryOf(),
+                    layerFactory,
+            ) as LayerQueryService
 
         layerFactory.update()
     }
