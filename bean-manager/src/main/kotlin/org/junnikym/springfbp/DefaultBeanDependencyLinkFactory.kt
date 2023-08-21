@@ -82,11 +82,11 @@ class DefaultBeanDependencyLinkFactory : BeanDependencyLinkFactory {
     }
 
     override fun hasParentOfFromNode(link: BeanDependencyLink): Boolean {
-        return reverseLinkMap.containsKey(link.from.name)
+        return reverseLinkMap.containsKey(link.to.name)
     }
 
     override fun getParentNames(beanName: String): List<String> {
-        return getLinksWithParent(beanName).map { it.from.name }
+        return getLinksWithParent(beanName).map { it.to.name }
     }
 
     override fun getLinksWithParent(beanName: String): List<BeanDependencyLink> {

@@ -16,11 +16,12 @@ class DefaultBeanDependencyLinkFactoryTest(
 
     /**
      * [ Test Bean Structure ]
+     *                         <must be root>
      * ┌────────┐   ┌────────┐   ┌────────┐
-     * │ Bean A ├───┤ Bean B ├─┬─┤ Bean C │
-     * └────────┘   └────────┘ │ └────────┘
-     * ┌────────┐              │ ┌────────┐
-     * │ Bean E ├──────────────┴─┤ Bean D │
+     * │ Bean C ├─┬─┤ Bean B ├───┤ Bean A │
+     * └────────┘ │ └────────┘   └────────┘
+     * ┌────────┐ │              ┌────────┐
+     * │ Bean D ├─└──────────────┤ Bean E │
      * └────────┘                └────────┘
      */
 
@@ -87,11 +88,11 @@ class DefaultBeanDependencyLinkFactoryTest(
         val hasParentE = factory.hasParent("dummyBeanE")
 
         // then
-        assertEquals(hasParentA, false)
+        assertEquals(hasParentA, true)
         assertEquals(hasParentB, true)
-        assertEquals(hasParentC, true)
-        assertEquals(hasParentD, true)
-        assertEquals(hasParentE, false)
+        assertEquals(hasParentC, false)
+        assertEquals(hasParentD, false)
+        assertEquals(hasParentE, true)
     }
 
     @Test
@@ -112,9 +113,9 @@ class DefaultBeanDependencyLinkFactoryTest(
         val hasParentOfFromNodeInLinkEtoD = factory.hasParentOfFromNode(linkEtoD)
 
         // then
-        assertEquals(hasParentOfFromNodeInLinkAtoB, false)
-        assertEquals(hasParentOfFromNodeInLinkBtoC, true)
-        assertEquals(hasParentOfFromNodeInLinkBtoD, true)
+        assertEquals(hasParentOfFromNodeInLinkAtoB, true)
+        assertEquals(hasParentOfFromNodeInLinkBtoC, false)
+        assertEquals(hasParentOfFromNodeInLinkBtoD, false)
         assertEquals(hasParentOfFromNodeInLinkEtoD, false)
     }
 
@@ -137,19 +138,19 @@ class DefaultBeanDependencyLinkFactoryTest(
         val parentNamesOfBeanE = HashSet(factory.getParentNames("dummyBeanE"))
 
         // then
-        assertEquals(parentNamesOfBeanA.size, 0)
+        assertEquals(parentNamesOfBeanA.size, 1)
+        assertTrue(parentNamesOfBeanA.contains("dummyBeanB"))
 
-        assertEquals(parentNamesOfBeanB.size, 1)
-        assertTrue(parentNamesOfBeanB.contains("dummyBeanA"))
+        assertEquals(parentNamesOfBeanB.size, 2)
+        assertTrue(parentNamesOfBeanB.contains("dummyBeanC"))
+        assertTrue(parentNamesOfBeanB.contains("dummyBeanD"))
 
-        assertEquals(parentNamesOfBeanC.size, 1)
-        assertTrue(parentNamesOfBeanC.contains("dummyBeanB"))
+        assertEquals(parentNamesOfBeanC.size, 0)
 
-        assertEquals(parentNamesOfBeanD.size, 2)
-        assertTrue(parentNamesOfBeanD.contains("dummyBeanB"))
-        assertTrue(parentNamesOfBeanD.contains("dummyBeanE"))
+        assertEquals(parentNamesOfBeanD.size, 0)
 
-        assertEquals(parentNamesOfBeanE.size, 0)
+        assertEquals(parentNamesOfBeanE.size, 1)
+        assertTrue(parentNamesOfBeanB.contains("dummyBeanD"))
     }
 
     @Test
@@ -171,11 +172,11 @@ class DefaultBeanDependencyLinkFactoryTest(
         val isE_Root = factory.isRoot("dummyBeanE")
 
         // then
-        assertEquals(isA_Root, true)
+        assertEquals(isA_Root, false)
         assertEquals(isB_Root, false)
-        assertEquals(isC_Root, false)
-        assertEquals(isD_Root, false)
-        assertEquals(isE_Root, true)
+        assertEquals(isC_Root, true)
+        assertEquals(isD_Root, true)
+        assertEquals(isE_Root, false)
     }
 
     @Test
@@ -193,9 +194,9 @@ class DefaultBeanDependencyLinkFactoryTest(
         val roots = HashSet(factory.getRootLinks())
 
         // then
-        assertEquals(roots.contains(linkAtoB), true)
-        assertEquals(roots.contains(linkBtoC), false)
-        assertEquals(roots.contains(linkBtoD), false)
+        assertEquals(roots.contains(linkAtoB), false)
+        assertEquals(roots.contains(linkBtoC), true)
+        assertEquals(roots.contains(linkBtoD), true)
         assertEquals(roots.contains(linkEtoD), true)
     }
 
@@ -214,11 +215,11 @@ class DefaultBeanDependencyLinkFactoryTest(
         val roots = HashSet(factory.getRootNames())
 
         // then
-        assertEquals(roots.contains("dummyBeanA"), true)
+        assertEquals(roots.contains("dummyBeanA"), false)
         assertEquals(roots.contains("dummyBeanB"), false)
-        assertEquals(roots.contains("dummyBeanC"), false)
-        assertEquals(roots.contains("dummyBeanD"), false)
-        assertEquals(roots.contains("dummyBeanE"), true)
+        assertEquals(roots.contains("dummyBeanC"), true)
+        assertEquals(roots.contains("dummyBeanD"), true)
+        assertEquals(roots.contains("dummyBeanE"), false)
     }
 
     @Test
@@ -262,19 +263,19 @@ class DefaultBeanDependencyLinkFactoryTest(
 
 
         // then
-        assertEquals(resultA.size, 1)
-        assertTrue(resultA.contains(linkAtoB))
+        assertEquals(resultA.size, 0)
 
-        assertEquals(resultB.size, 2)
-        assertTrue(resultB.contains(linkBtoC))
-        assertTrue(resultB.contains(linkBtoD))
+        assertEquals(resultB.size, 1)
+        assertTrue(resultB.contains(linkAtoB))
 
-        assertEquals(resultC.size, 0)
+        assertEquals(resultC.size, 1)
+        assertTrue(resultC.contains(linkBtoC))
 
-        assertEquals(resultD.size, 0)
+        assertEquals(resultD.size, 2)
+        assertTrue(resultD.contains(linkBtoD))
+        assertTrue(resultD.contains(linkEtoD))
 
-        assertEquals(resultE.size, 1)
-        assertTrue(resultE.contains(linkEtoD))
+        assertEquals(resultE.size, 0)
     }
 
 
@@ -287,50 +288,6 @@ class DefaultBeanDependencyLinkFactoryTest(
     ) {
         // [ verify link map ]
         val linkMap = getFactoryField("linkMap") as HashMap<*, *>
-        assertEquals(linkMap.keys.size, 3)
-
-        // supposed to be
-        assertTrue(linkMap.containsKey("dummyBeanA"))
-        assertTrue(linkMap.containsKey("dummyBeanB"))
-        assertTrue(linkMap.containsKey("dummyBeanE"))
-
-        // supposed not to be
-        assertFalse(linkMap.containsKey("dummyBeanC"))
-        assertFalse(linkMap.containsKey("dummyBeanD"))
-
-        // [ verify list in link map ]
-        val aLinks = HashSet(linkMap["dummyBeanA"] as List<*>)
-        val bLinks = HashSet(linkMap["dummyBeanB"] as List<*>)
-        val eLinks = HashSet(linkMap["dummyBeanE"] as List<*>)
-        assertEquals(aLinks.size, 1)
-        assertEquals(bLinks.size, 2)
-        assertEquals(eLinks.size, 1)
-
-        // supposed to be
-        assertTrue(aLinks.contains(linkAtoB))
-        assertTrue(bLinks.contains(linkBtoC))
-        assertTrue(bLinks.contains(linkBtoD))
-        assertTrue(eLinks.contains(linkEtoD))
-
-        // supposed not to be
-        assertFalse(aLinks.contains(linkBtoC))
-        assertFalse(aLinks.contains(linkBtoD))
-        assertFalse(aLinks.contains(linkEtoD))
-        assertFalse(bLinks.contains(linkAtoB))
-        assertFalse(bLinks.contains(linkEtoD))
-        assertFalse(eLinks.contains(linkAtoB))
-        assertFalse(eLinks.contains(linkBtoC))
-        assertFalse(eLinks.contains(linkBtoD))
-    }
-
-    private fun verifyReverseLinkMap_whenAdd(
-        linkAtoB: BeanDependencyLink,
-        linkBtoC: BeanDependencyLink,
-        linkBtoD: BeanDependencyLink,
-        linkEtoD: BeanDependencyLink,
-    ) {
-        // [ verify link map ]
-        val linkMap = getFactoryField("reverseLinkMap") as HashMap<*, *>
         assertEquals(linkMap.keys.size, 3)
 
         // supposed to be
@@ -361,10 +318,54 @@ class DefaultBeanDependencyLinkFactoryTest(
         assertFalse(bLinks.contains(linkBtoD))
         assertFalse(bLinks.contains(linkEtoD))
         assertFalse(cLinks.contains(linkAtoB))
-        assertFalse(cLinks.contains(linkBtoD))
         assertFalse(cLinks.contains(linkEtoD))
+        assertFalse(cLinks.contains(linkBtoD))
         assertFalse(dLinks.contains(linkAtoB))
         assertFalse(dLinks.contains(linkBtoC))
+    }
+
+    private fun verifyReverseLinkMap_whenAdd(
+        linkAtoB: BeanDependencyLink,
+        linkBtoC: BeanDependencyLink,
+        linkBtoD: BeanDependencyLink,
+        linkEtoD: BeanDependencyLink,
+    ) {
+        // [ verify link map ]
+        val linkMap = getFactoryField("reverseLinkMap") as HashMap<*, *>
+        assertEquals(linkMap.keys.size, 3)
+
+        // supposed to be
+        assertTrue(linkMap.containsKey("dummyBeanB"))
+        assertTrue(linkMap.containsKey("dummyBeanA"))
+        assertTrue(linkMap.containsKey("dummyBeanE"))
+
+        // supposed not to be
+        assertFalse(linkMap.containsKey("dummyBeanC"))
+        assertFalse(linkMap.containsKey("dummyBeanD"))
+
+        // [ verify list in link map ]
+        val aLinks = HashSet(linkMap["dummyBeanA"] as List<*>)
+        val bLinks = HashSet(linkMap["dummyBeanB"] as List<*>)
+        val eLinks = HashSet(linkMap["dummyBeanE"] as List<*>)
+        assertEquals(aLinks.size, 1)
+        assertEquals(bLinks.size, 2)
+        assertEquals(eLinks.size, 1)
+
+        // supposed to be
+        assertTrue(aLinks.contains(linkAtoB))
+        assertTrue(bLinks.contains(linkBtoC))
+        assertTrue(bLinks.contains(linkBtoD))
+        assertTrue(eLinks.contains(linkEtoD))
+
+        // supposed not to be
+        assertFalse(aLinks.contains(linkBtoC))
+        assertFalse(aLinks.contains(linkBtoD))
+        assertFalse(aLinks.contains(linkEtoD))
+        assertFalse(bLinks.contains(linkAtoB))
+        assertFalse(bLinks.contains(linkEtoD))
+        assertFalse(eLinks.contains(linkBtoD))
+        assertFalse(eLinks.contains(linkAtoB))
+        assertFalse(eLinks.contains(linkBtoC))
     }
 
     private fun verifyLinkList_whenAdd(
@@ -391,14 +392,15 @@ class DefaultBeanDependencyLinkFactoryTest(
         assertEquals(linkNameSet.size, 2)
 
         // supposed to be
-        assertTrue(linkNameSet.contains(linkAtoB.from.name))
-        assertTrue(linkNameSet.contains(linkEtoD.from.name))
+        assertTrue(linkNameSet.contains(linkBtoC.to.name))
+        assertTrue(linkNameSet.contains(linkBtoD.to.name))
+        assertTrue(linkNameSet.contains(linkEtoD.to.name))
 
         // supposed not to be
-        assertFalse(linkNameSet.contains(linkAtoB.to.name))
-        assertFalse(linkNameSet.contains(linkBtoC.to.name))
-        assertFalse(linkNameSet.contains(linkBtoD.to.name))
-        assertFalse(linkNameSet.contains(linkEtoD.to.name))
+        assertFalse(linkNameSet.contains(linkAtoB.from.name))
+        assertFalse(linkNameSet.contains(linkBtoC.from.name))
+        assertFalse(linkNameSet.contains(linkBtoD.from.name))
+        assertFalse(linkNameSet.contains(linkEtoD.from.name))
     }
 
     private fun getFactoryField(name: String): Any {
