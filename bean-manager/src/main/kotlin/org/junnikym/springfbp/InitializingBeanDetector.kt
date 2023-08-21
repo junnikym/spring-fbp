@@ -33,8 +33,9 @@ class InitializingBeanDetector(
         if(beanName == "initializingBeanDetector")
             return null;
 
-        val bean = beanFactory.getBean(beanName);
-        if(!beanManagingTargetFilter.isManageTarget(bean::class))
+        val bean = beanFactory.getBean(beanName)
+        val beanClass = AopProxyUtils.ultimateTargetClass(bean);
+        if(!beanManagingTargetFilter.isManageTarget(beanClass))
             return null;
 
         val definition = beanFactory.getBeanDefinition(beanName);
