@@ -1,6 +1,7 @@
 package org.junnikym.springfbp.service
 
 import org.junnikym.springfbp.BeanDependencyLinkFactory
+import org.junnikym.springfbp.BeanDependencyNodeFactory
 import org.junnikym.springfbp.BeanWithLayer
 import org.springframework.aop.framework.AopProxyUtils
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory
@@ -11,16 +12,17 @@ import java.util.stream.Collectors
 class LayerQueryServiceImpl (
         private val beanFactory: ConfigurableListableBeanFactory,
         private val beanDependencyLinkFactory: BeanDependencyLinkFactory,
+        private val beanDependencyNodeFactory: BeanDependencyNodeFactory,
         private val beanLayerFactory: BeanLayerFactory
 ): LayerQueryService {
 
     override fun get(): List<List<BeanWithLayer>> {
         beanLayerFactory.update()
 
-        val layerMap = beanDependencyLinkFactory
-            .getLinkedBeanNames().parallelStream()
-            .map(::beanWithLayerOf)
-            .collect(Collectors.groupingBy { it.layer })
+        val layerMap = beanDependencyNodeFactory.getAllNames()
+                .parallelStream()
+                .map(::beanWithLayerOf)
+                .collect(Collectors.groupingBy { it.layer })
 
         val result: ArrayList<List<BeanWithLayer>> = ArrayList()
         val lastLayer: Int = layerMap.keys.maxOrNull()?:0

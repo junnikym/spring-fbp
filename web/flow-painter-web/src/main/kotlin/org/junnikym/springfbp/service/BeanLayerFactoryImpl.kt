@@ -2,11 +2,14 @@ package org.junnikym.springfbp.service
 
 import org.junnikym.springfbp.BeanDependencyLink
 import org.junnikym.springfbp.BeanDependencyLinkFactory
+import org.junnikym.springfbp.BeanDependencyNode
+import org.junnikym.springfbp.BeanDependencyNodeFactory
 import org.springframework.stereotype.Component
 
 @Component
 class BeanLayerFactoryImpl(
-    private val beanDependencyLinkFactory: BeanDependencyLinkFactory
+        private val beanDependencyLinkFactory: BeanDependencyLinkFactory,
+        private val beanDependencyNodeFactory: BeanDependencyNodeFactory,
 ): BeanLayerFactory {
 
     private var layerMap: Map<String, Int> = mapOf();
@@ -15,9 +18,7 @@ class BeanLayerFactoryImpl(
         val newLayerMap: HashMap<String, Int> = HashMap();
         val histories : HashSet<String> = HashSet();
 
-        beanDependencyLinkFactory.getRootNames()
-            .forEach { searchLinkBranch(0, it, newLayerMap, histories) }
-
+        beanDependencyNodeFactory.getAllNames().forEach { searchLinkBranch(0, it, newLayerMap, histories) }
         this.layerMap = newLayerMap;
     }
 

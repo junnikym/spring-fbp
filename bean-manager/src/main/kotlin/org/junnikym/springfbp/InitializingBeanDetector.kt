@@ -1,5 +1,6 @@
 package org.junnikym.springfbp
 
+import org.springframework.aop.framework.AopProxyUtils
 import org.springframework.beans.factory.InitializingBean
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory
 import org.springframework.context.annotation.Configuration
@@ -9,24 +10,31 @@ import org.springframework.context.annotation.Configuration
 class InitializingBeanDetector(
         private val beanFactory: ConfigurableListableBeanFactory,
         private val linkFactory: BeanDependencyLinkFactory,
+        private val nodeFactory: BeanDependencyNodeFactory,
         private val beanManagingTargetFilter: BeanManagingTargetFilter,
 ) : InitializingBean {
 
     override fun afterPropertiesSet() {
+        addNodesInFactory()
+        addLinksInFactory()
+    }
+
+    private fun addNodesInFactory() {
         beanFactory.beanDefinitionNames
-            .mapNotNull(::getLink)
-            .forEach(linkFactory::add);
+                .mapNotNull(::getBeanDependencyNode)
+                .forEach(nodeFactory::add)
     }
 
-    private fun getLink(beanName: String): List<BeanDependencyLink>? {
-        val self = getBeanDependencyNode(beanName) ?: return null;
-        return getDependencies(beanName).map { BeanDependencyLink(self, it) };
+    private fun addLinksInFactory() {
+        nodeFactory.getAll()
+                .mapNotNull(::getLinks)
+                .forEach(linkFactory::add);
     }
 
-    private fun getDependencies(beanName: String): List<BeanDependencyNode> {
-        return beanFactory
-            .getDependentBeans(beanName)
-            .mapNotNull(::getBeanDependencyNode);
+    private fun getLinks(node: BeanDependencyNode): List<BeanDependencyLink>? {
+        return beanFactory.getDependentBeans(node.name)
+                .mapNotNull(nodeFactory::get)
+                .map { other-> BeanDependencyLink(node, other) };
     }
 
     private fun getBeanDependencyNode(beanName: String): BeanDependencyNode? {
