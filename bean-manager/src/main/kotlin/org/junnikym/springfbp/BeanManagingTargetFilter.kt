@@ -25,12 +25,32 @@ class BeanManagingTargetFilter (
     }
 
     fun isIgnoreManage(beanClass: Class<*>): Boolean {
-        return beanClass.annotations.any {
-            when(it.annotationClass) {
-                SpringBootApplication::class, IgnoreManage::class -> true
-                else -> false
-            }
+        if(beanClass.annotations.any(::isAnnotationForIgnore))
+            return true
+
+        if(getSuperClasses(beanClass).any { it.annotations.any(::isAnnotationForIgnore) })
+            return true
+
+        return beanClass.interfaces.any { it.annotations.any(::isAnnotationForIgnore) }
+    }
+
+    private fun isAnnotationForIgnore(annotation: Annotation): Boolean {
+        return when(annotation.annotationClass) {
+            SpringBootApplication::class, IgnoreManage::class -> true
+            else -> false
         }
+    }
+
+    private fun getSuperClasses(cls: Class<*>): List<Class<*>> {
+        val superClassList = mutableListOf<Class<*>>()
+        var superClass = cls.superclass
+
+        while(superClass != null) {
+            superClassList.add(superClass)
+            superClass = superClass.superclass
+        }
+
+        return superClassList
     }
 
 }
