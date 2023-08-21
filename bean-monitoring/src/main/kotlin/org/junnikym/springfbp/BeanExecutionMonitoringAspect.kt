@@ -4,6 +4,7 @@ import org.aopalliance.intercept.MethodInterceptor
 import org.aopalliance.intercept.MethodInvocation
 import java.lang.reflect.Method
 
+@IgnoreManage
 class BeanExecutionMonitoringAspect(
         private val bean: Any,
         private val beanManagingTargetFilter: BeanManagingTargetFilter,
