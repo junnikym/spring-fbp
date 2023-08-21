@@ -3,6 +3,7 @@ package org.junnikym.springfbp
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Sinks
 
+@IgnoreManage
 abstract class AbstractBeanMonitoringService {
 
     private val publisher: Sinks.Many<BeanEvent> = Sinks.many().multicast().onBackpressureBuffer()

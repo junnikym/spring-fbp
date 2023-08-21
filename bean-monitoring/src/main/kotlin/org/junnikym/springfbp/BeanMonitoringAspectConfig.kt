@@ -5,6 +5,7 @@ import org.springframework.beans.factory.config.BeanPostProcessor
 import org.springframework.context.annotation.Configuration
 
 @Configuration
+@IgnoreManage
 class BeanMonitoringAspectConfig(
         private val beanManagingTargetFilter: BeanManagingTargetFilter,
         private val beanExecutionMonitoringService: BeanExecutionMonitoringService,

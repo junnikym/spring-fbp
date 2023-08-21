@@ -6,6 +6,7 @@ import org.springframework.stereotype.Component
 import kotlin.reflect.KClass
 
 @Component
+@IgnoreManage
 class BeanManagingTargetFilter (
         @Value("\${spring.fbp.base-package}") private val basePackage: String
 ) {
