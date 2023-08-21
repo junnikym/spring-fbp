@@ -1,5 +1,8 @@
 package org.junnikym.springfbp.service
 
+import org.junnikym.springfbp.IgnoreManage
+
+@IgnoreManage
 interface BeanLayerFactory {
 
     /**

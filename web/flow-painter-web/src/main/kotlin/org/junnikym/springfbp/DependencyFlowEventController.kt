@@ -6,6 +6,7 @@ import org.springframework.web.bind.annotation.RestController
 import reactor.core.publisher.Flux
 
 @RestController
+@IgnoreManage
 class DependencyFlowEventController (
         private val beanExecutionMonitoringService: BeanExecutionMonitoringService,
 ) {

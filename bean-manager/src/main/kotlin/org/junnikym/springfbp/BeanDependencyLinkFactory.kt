@@ -1,5 +1,6 @@
 package org.junnikym.springfbp
 
+@IgnoreManage
 interface BeanDependencyLinkFactory {
 
     fun add(link: BeanDependencyLink);

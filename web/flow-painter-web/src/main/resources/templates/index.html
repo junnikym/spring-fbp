@@ -35,14 +35,11 @@
 
         const beanDependencyTable = document.getElementById("bean-dependency-table")
         const executionEvent = new BeanExecutionEventApi(event => {
-            if(!event.from?.className)
-                return
-
-	        let node = BeanDependencyNode.nodes.get(event.bean?.className)
+	        let node = BeanDependencyNode.nodes.get(event.from?.className)
 	        if(!node)
 	            return
 
-	        const line = node.linkDoms.get(event.from.className)
+	        const line = node.linkDoms.get(event.bean.className)
 	        if(!line)
 	            return
 
