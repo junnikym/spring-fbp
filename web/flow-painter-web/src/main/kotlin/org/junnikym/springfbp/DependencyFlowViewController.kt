@@ -1,5 +1,6 @@
 package org.junnikym.springfbp
 
+import org.junnikym.springfbp.filter.IgnoreManage
 import org.junnikym.springfbp.service.LayerQueryService
 import org.springframework.stereotype.Controller
 import org.springframework.ui.Model

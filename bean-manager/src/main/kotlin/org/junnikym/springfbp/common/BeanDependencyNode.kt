@@ -1,4 +1,4 @@
-package org.junnikym.springfbp
+package org.junnikym.springfbp.common
 
 import org.springframework.beans.factory.config.BeanDefinition
 

@@ -1,4 +1,4 @@
-package org.junnikym.springfbp
+package org.junnikym.springfbp.filter
 
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.autoconfigure.SpringBootApplication

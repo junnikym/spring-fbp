@@ -1,5 +1,6 @@
-package org.junnikym.springfbp
+package org.junnikym.springfbp.factory
 
+import org.junnikym.springfbp.common.BeanDependencyLink
 import org.springframework.stereotype.Component
 
 @Component
@@ -51,9 +52,9 @@ class DefaultBeanDependencyLinkFactory : BeanDependencyLinkFactory {
     }
 
     private fun addToMap(
-        name: String,
-        link: BeanDependencyLink,
-        map: HashMap<String, ArrayList<BeanDependencyLink>>
+            name: String,
+            link: BeanDependencyLink,
+            map: HashMap<String, ArrayList<BeanDependencyLink>>
     ) {
         val linkList = map.getOrDefault(name, ArrayList())
         linkList.add(link)

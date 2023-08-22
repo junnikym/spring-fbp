@@ -1,4 +1,7 @@
-package org.junnikym.springfbp
+package org.junnikym.springfbp.factory
+
+import org.junnikym.springfbp.common.BeanDependencyNode
+import org.junnikym.springfbp.filter.IgnoreManage
 
 @IgnoreManage
 interface BeanDependencyNodeFactory {

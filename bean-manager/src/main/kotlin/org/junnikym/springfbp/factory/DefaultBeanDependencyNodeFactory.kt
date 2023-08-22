@@ -1,5 +1,6 @@
-package org.junnikym.springfbp
+package org.junnikym.springfbp.factory
 
+import org.junnikym.springfbp.common.BeanDependencyNode
 import org.springframework.stereotype.Component
 
 @Component

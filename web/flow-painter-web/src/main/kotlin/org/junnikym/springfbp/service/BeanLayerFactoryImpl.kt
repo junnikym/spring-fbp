@@ -1,9 +1,7 @@
 package org.junnikym.springfbp.service
 
-import org.junnikym.springfbp.BeanDependencyLink
-import org.junnikym.springfbp.BeanDependencyLinkFactory
-import org.junnikym.springfbp.BeanDependencyNode
-import org.junnikym.springfbp.BeanDependencyNodeFactory
+import org.junnikym.springfbp.factory.BeanDependencyLinkFactory
+import org.junnikym.springfbp.factory.BeanDependencyNodeFactory
 import org.springframework.stereotype.Component
 
 @Component

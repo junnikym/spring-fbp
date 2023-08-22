@@ -1,5 +1,6 @@
 package org.junnikym.springfbp
 
+import org.junnikym.springfbp.filter.IgnoreManage
 import org.springframework.http.MediaType
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.RestController

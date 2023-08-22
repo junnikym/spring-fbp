@@ -1,7 +1,7 @@
 package org.junnikym.springfbp.service
 
-import org.junnikym.springfbp.BeanDependencyLinkFactory
-import org.junnikym.springfbp.BeanDependencyNodeFactory
+import org.junnikym.springfbp.factory.BeanDependencyLinkFactory
+import org.junnikym.springfbp.factory.BeanDependencyNodeFactory
 import org.junnikym.springfbp.BeanWithLayer
 import org.springframework.aop.framework.AopProxyUtils
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory

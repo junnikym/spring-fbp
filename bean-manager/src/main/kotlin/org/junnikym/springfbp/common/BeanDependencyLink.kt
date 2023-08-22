@@ -1,6 +1,4 @@
-package org.junnikym.springfbp
-
-import org.springframework.beans.factory.config.BeanDefinition
+package org.junnikym.springfbp.common
 
 class BeanDependencyLink {
 
@@ -8,8 +6,8 @@ class BeanDependencyLink {
     val to: BeanDependencyNode;
 
     constructor(
-        from : BeanDependencyNode,
-        to: BeanDependencyNode
+            from : BeanDependencyNode,
+            to: BeanDependencyNode
     ) {
         this.from = from;
         this.to   = to;
