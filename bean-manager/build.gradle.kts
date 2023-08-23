@@ -15,6 +15,8 @@ dependencies {
     implementation("org.jetbrains.kotlin:kotlin-stdlib")
 	implementation("org.jetbrains.kotlin:kotlin-reflect")
 
+    implementation("org.ow2.asm:asm:9.5")
+
     implementation("org.springframework.boot:spring-boot-starter")
     testImplementation("org.springframework.boot:spring-boot-starter-test")
 }
