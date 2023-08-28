@@ -1,13 +1,18 @@
 package org.junnikym.springfbp.common
 
+import java.lang.reflect.Method
+
 data class DetectedUnmanagedClass(
-        val from: Class<*>,
-        val location: Location,
+        val fromClass: Class<*>,
         val methodName: String? = null,
-        val generated: Class<*>,
+        val generatedClass: Class<*>,
+        val generatorDesc: String,
+        val generatorType: GeneratorType,
+        val generatorOwner: Class<*>,
         val isInterface: Boolean,
 ) {
-    enum class Location { Field, InMethod, Constructor, FactoryMethod }
+
+    enum class GeneratorType { Method, Constructor, Field }
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
@@ -15,14 +20,27 @@ data class DetectedUnmanagedClass(
 
         other as DetectedUnmanagedClass
 
-        if (from != other.from) return false
-        if (location != other.location) return false
+        if (fromClass != other.fromClass) return false
         if (methodName != other.methodName) return false
-        return generated != generated
+        return generatedClass != generatedClass
     }
 
     override fun hashCode(): Int {
-        return 31 * from.hashCode() + location.hashCode() + methodName.hashCode() + generated.hashCode()
+        return 31 * fromClass.hashCode() + methodName.hashCode() + generatedClass.hashCode()
+    }
+
+    override fun toString(): String {
+        return """
+            DetectedUnmanagedClass {
+                fromClass = $fromClass,
+                methodName = $methodName,
+                generatedClass = $generatedClass,
+                generatorDesc = $generatorDesc,
+                generatorType = $generatorType,
+                generatorOwner = $generatorOwner,
+                isInterface = $isInterface,
+            }
+        """.trimIndent()
     }
 
 }

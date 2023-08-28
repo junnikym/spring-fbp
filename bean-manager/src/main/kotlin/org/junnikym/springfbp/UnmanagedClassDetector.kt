@@ -24,122 +24,180 @@ class UnmanagedClassDetector(
         val classWriter = ClassWriter(classReader, 0)
         val detectedClassSet = mutableSetOf<DetectedUnmanagedClass>()
 
-        val bytecodePrinterClassVisitor = UnmanagedClassVisitor(
+        val unmanagedClassVisitor = UnmanagedClassVisitor(
                 clazz = clazz,
                 classVisitor = classWriter,
                 beanManagingTargetFilter = beanManagingTargetFilter,
                 detectedClassSet = detectedClassSet
         )
-        classReader.accept(bytecodePrinterClassVisitor, 0)
+        classReader.accept(unmanagedClassVisitor, 0)
 
         return detectedClassSet
     }
 
-    private inner class UnmanagedClassVisitor(
-            private val clazz: Class<*>,
-            classVisitor: ClassVisitor,
-            private val beanManagingTargetFilter: BeanManagingTargetFilter,
-            private val detectedClassSet: MutableSet<DetectedUnmanagedClass>,
-    ) : ClassVisitor(ASM_API, classVisitor) {
+}
 
-        override fun visitMethod(access: Int, name: String, desc: String, signature: String?, exceptions: Array<out String>?): MethodVisitor? {
+private class UnmanagedClassVisitor(
+        private val clazz: Class<*>,
+        classVisitor: ClassVisitor,
+        private val beanManagingTargetFilter: BeanManagingTargetFilter,
+        private val detectedClassSet: MutableSet<DetectedUnmanagedClass>,
+) : ClassVisitor(ASM_API, classVisitor) {
 
-            val methodVisitor = cv.visitMethod(access, name, desc, signature, exceptions)
+    override fun visitMethod(access: Int, name: String, desc: String, signature: String?, exceptions: Array<out String>?): MethodVisitor? {
+        val methodVisitor = cv.visitMethod(access, name, desc, signature, exceptions)
 
-            return UnmanagedClassMethodVisitor(
-                    clazz = clazz,
-                    methodName = name,
-                    methodVisitor = methodVisitor,
-                    beanManagingTargetFilter = beanManagingTargetFilter,
-                    detectedClassSet = detectedClassSet
-            )
-        }
-
+        return UnmanagedClassMethodVisitor(
+                clazz = clazz,
+                methodName = name,
+                methodVisitor = methodVisitor,
+                beanManagingTargetFilter = beanManagingTargetFilter,
+                detectedClassSet = detectedClassSet
+        )
     }
 
+}
 
 
-    private inner class UnmanagedClassMethodVisitor(
-            private val clazz: Class<*>,
-            private val methodName: String,
-            methodVisitor: MethodVisitor,
-            private val beanManagingTargetFilter: BeanManagingTargetFilter,
-            private val detectedClassSet: MutableSet<DetectedUnmanagedClass>,
-    ) : MethodVisitor(ASM_API, methodVisitor) {
+private class UnmanagedClassMethodVisitor(
+        private val clazz: Class<*>,
+        private val methodName: String,
+        methodVisitor: MethodVisitor,
+        private val beanManagingTargetFilter: BeanManagingTargetFilter,
+        private val detectedClassSet: MutableSet<DetectedUnmanagedClass>,
+) : MethodVisitor(ASM_API, methodVisitor) {
 
-        override fun visitMethodInsn(opcode: Int, owner: String, name: String, desc: String, itf: Boolean) {
+    private val staticGetterExecutions = mutableSetOf<Class<*>>()
 
-            when(opcode) {
-                Opcodes.INVOKESTATIC-> doWhenFactoryMethodExecuted(owner, name, desc)
-                Opcodes.INVOKESPECIAL-> doWhenConstructorExecuted(owner, name)
-                else -> null
-            }?.let(detectedClassSet::add)
-
-            super.visitMethodInsn(opcode, owner, name, desc, itf)
+    override fun visitFieldInsn(opcode: Int, owner: String?, name: String?, descriptor: String?) {
+        when(opcode) {
+            Opcodes.GETSTATIC-> doWhenStaticFieldGetExecuted(name, descriptor)
+            Opcodes.PUTFIELD-> doWhenAssignmentExecuted(owner, descriptor)
         }
 
-        private fun doWhenConstructorExecuted(
-                generatedClassResourcePath: String,
-                methodName: String,
-        ): DetectedUnmanagedClass? {
-            if(methodName != "<init>")
-                return null
+        super.visitFieldInsn(opcode, owner, name, descriptor)
+    }
 
-            val generatedClass = getClassFromPath(generatedClassResourcePath)
-            if(!beanManagingTargetFilter.isManageTarget(generatedClass))
-                return null
-
-            val location = when(methodName) {
-                "<init>" -> DetectedUnmanagedClass.Location.Constructor
-                else     -> DetectedUnmanagedClass.Location.InMethod
-            }
-
-            return detectedUnmanagedClassOf(generatedClass = generatedClass, location = location, )
+    override fun visitMethodInsn(opcode: Int, owner: String, name: String, desc: String, itf: Boolean) {
+        when(opcode) {
+            Opcodes.INVOKEVIRTUAL-> doWhenMethodExecuted(owner, name, desc)
+            Opcodes.INVOKESTATIC-> doWhenMethodExecuted(owner, name, desc)
+            Opcodes.INVOKESPECIAL-> doWhenConstructorExecuted(owner, name, desc)
         }
 
-        private fun doWhenFactoryMethodExecuted(
-                methodOwner: String,
-                methodName: String,
-                methodDescriptor: String,
-        ): DetectedUnmanagedClass? {
-            val factoryClass = getClassFromPath(methodOwner)
-            val methodType = Type.getMethodType(methodDescriptor)
-            val methodArgTypes = methodType.argumentTypes.map { TypeClassFactory.of(it.className) }
-            val method = factoryClass.getDeclaredMethod(methodName, *methodArgTypes.toTypedArray())
+        super.visitMethodInsn(opcode, owner, name, desc, itf)
+    }
 
-            if(method.returnType.name != methodType.returnType.className)
-                return null
-            if(method.returnType.name == "void")
-                return null
-            if(!beanManagingTargetFilter.isManageTarget(method.returnType))
-                return null
+    private fun doWhenConstructorExecuted(
+            methodOwner: String,
+            methodName: String,
+            methodDescriptor: String,
+    ) {
+        if(methodName != "<init>")
+            return
 
-            val location = when(methodName) {
-                "<init>" -> DetectedUnmanagedClass.Location.Constructor
-                else     -> DetectedUnmanagedClass.Location.FactoryMethod
-            }
+        val generatedClass = getClassFromPath(methodOwner)
+        if(!beanManagingTargetFilter.isManageTarget(generatedClass))
+            return
 
-            return detectedUnmanagedClassOf(generatedClass = method.returnType, location = location, )
-        }
-        private fun detectedUnmanagedClassOf(
-                generatedClass: Class<*>,
-                location: DetectedUnmanagedClass.Location
-        ): DetectedUnmanagedClass {
-            return DetectedUnmanagedClass(
-                    from = clazz,
-                    location = location,
-                    methodName = methodName,
-                    generated = generatedClass,
-                    isInterface = generatedClass.isInterface
-            )
-        }
+        detectedUnmanagedClassOf(
+                generatedClass,
+                methodDescriptor,
+                DetectedUnmanagedClass.GeneratorType.Constructor,
+                generatedClass,
+        ).let(detectedClassSet::add)
+    }
 
-        private fun getClassFromPath(path: String): Class<*> {
-            val className = ClassUtils.convertResourcePathToClassName(path)
-            return Class.forName(className)
-        }
+    private fun doWhenMethodExecuted(
+            methodOwner: String,
+            methodName: String,
+            methodDescriptor: String,
+    ) {
+        val factoryClass = getClassFromPath(methodOwner)
+        val methodType = Type.getMethodType(methodDescriptor)
+        val methodArgTypes = methodType.argumentTypes.map { TypeClassFactory.of(it.className) }
+        val method = factoryClass.getDeclaredMethod(methodName, *methodArgTypes.toTypedArray())
 
+        if(method.returnType.name != methodType.returnType.className)
+            return
+        if(method.returnType.name == "void")
+            return
+        if(!beanManagingTargetFilter.isManageTarget(method.returnType))
+            return
 
+        detectedUnmanagedClassOf(
+                method.returnType,
+                methodDescriptor,
+                DetectedUnmanagedClass.GeneratorType.Method,
+                factoryClass,
+        ).let(detectedClassSet::add)
+    }
+
+    private fun doWhenStaticFieldGetExecuted(
+            fieldName: String?,
+            fieldDescriptor: String?,
+    ) {
+        if(fieldDescriptor.isNullOrBlank() || fieldName.isNullOrBlank())
+            return
+
+        if(fieldName == "Companion")
+            return
+
+        val fieldTypeName = Type.getType(fieldDescriptor).className
+        val fieldClass = Class.forName(fieldTypeName)
+        if(!beanManagingTargetFilter.isManageTarget(fieldClass))
+            return
+
+        staticGetterExecutions.add(fieldClass)
+    }
+
+    private fun doWhenAssignmentExecuted(fieldOwner: String?, fieldDescriptor: String?) {
+        if(fieldDescriptor.isNullOrBlank() || fieldOwner.isNullOrBlank())
+            return
+
+        val fieldTypeName = Type.getType(fieldDescriptor)
+        val fieldClass = Class.forName(fieldTypeName.className)
+
+        val assignFromStatic = staticGetterExecutions
+                .find(fieldClass::isAssignableFrom)
+                ?.let { staticGetterExecutions.remove(it); it }
+                ?.javaClass
+
+        val assignedClass = assignFromStatic ?: fieldClass
+        if(!beanManagingTargetFilter.isManageTarget(assignedClass))
+            return
+
+        val ownerClass = getClassFromPath(fieldOwner)
+
+        detectedUnmanagedClassOf(
+                fieldClass,
+                fieldDescriptor,
+                DetectedUnmanagedClass.GeneratorType.Field,
+                ownerClass
+        ).let(detectedClassSet::add)
+    }
+
+    private fun detectedUnmanagedClassOf(
+            generatedClass: Class<*>,
+            generatorDesc: String,
+            generatorType: DetectedUnmanagedClass.GeneratorType,
+            generatorOwner: Class<*>,
+    ): DetectedUnmanagedClass {
+
+        return DetectedUnmanagedClass(
+                fromClass = this.clazz,
+                methodName = this.methodName,
+                generatedClass = generatedClass,
+                generatorDesc = generatorDesc,
+                generatorType = generatorType,
+                generatorOwner = generatorOwner,
+                isInterface = generatedClass.isInterface,
+        )
+    }
+
+    private fun getClassFromPath(path: String): Class<*> {
+        val className = ClassUtils.convertResourcePathToClassName(path)
+        return Class.forName(className)
     }
 
 }
