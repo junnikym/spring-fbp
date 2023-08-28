@@ -16,23 +16,24 @@ interface BeanDependencyLinkFactory {
 
     fun hasParentOfFromNode(link: BeanDependencyLink): Boolean;
 
-    fun getParentNames(beanName: String): List<String>
+    fun getParentNames(beanName: String): Collection<String>
 
-    fun getLinksWithParent(beanName: String): List<BeanDependencyLink>
+    fun getLinksWithParent(beanName: String): Collection<BeanDependencyLink>
 
 
 
     fun isRoot(beanName: String): Boolean;
 
-    fun getRootLinks(): List<BeanDependencyLink>;
+    fun getRootLinks(): Collection<BeanDependencyLink>;
 
-    fun getRootNames(): List<String>;
+    fun getRootNames(): Collection<String>;
 
 
 
-    fun getLinks(): List<BeanDependencyLink>;
+    fun getLinks(): Collection<BeanDependencyLink>;
 
-    fun getLinks(name: String): List<BeanDependencyLink>;
+    fun getLinks(name: String): Collection<BeanDependencyLink>;
+
 
 
     fun getLinkedBeanNames(): Set<String>;
