@@ -34,6 +34,12 @@ interface BeanDependencyLinkFactory {
 
     fun getLinks(name: String): Collection<BeanDependencyLink>;
 
+    fun getLinks(clazz: Class<*>): Collection<BeanDependencyLink>;
+
+    fun getLinkedClasses(name: String): Collection<Class<*>>
+
+    fun getLinkedClasses(clazz: Class<*>): Collection<Class<*>>
+
 
 
     fun getLinkedBeanNames(): Set<String>;

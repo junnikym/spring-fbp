@@ -1,6 +1,7 @@
 package org.junnikym.springfbp.factory
 
 import org.junnikym.springfbp.common.BeanDependencyLink
+import org.springframework.aop.framework.AopProxyUtils
 import org.springframework.stereotype.Component
 
 @Component
@@ -11,6 +12,12 @@ class DefaultBeanDependencyLinkFactory : BeanDependencyLinkFactory {
     private val linkNameMap =
             mutableMapOf<String, MutableList<BeanDependencyLink>>()
                     as MutableMap<String, MutableCollection<BeanDependencyLink>>
+
+    // key : class of from (bean); parent node
+    // val : child node
+    private val linkClassMap =
+            mutableMapOf<Class<*>, MutableSet<BeanDependencyLink>>()
+                    as MutableMap<Class<*>, MutableCollection<BeanDependencyLink>>
 
     // key : name of to (bean); child node
     // val : parent node
@@ -131,6 +138,26 @@ class DefaultBeanDependencyLinkFactory : BeanDependencyLinkFactory {
 
         return linkNameMap[name]!!
     }
+
+    override fun getLinks(clazz: Class<*>): Collection<BeanDependencyLink> {
+        if(!linkClassMap.containsKey(clazz))
+            return listOf()
+
+        return linkClassMap[clazz]!!
+    }
+
+    override fun getLinkedClasses(name: String): Collection<Class<*>> {
+        return getLinkedClasses(getLinks(name))
+    }
+
+    override fun getLinkedClasses(clazz: Class<*>): Collection<Class<*>> {
+        return getLinkedClasses(getLinks(clazz))
+    }
+
+    private fun getLinkedClasses(links: Collection<BeanDependencyLink>): Collection<Class<*>> {
+        return links.map { AopProxyUtils.ultimateTargetClass(it.from.bean) }
+    }
+
 
     override fun getLinkedBeanNames(): Set<String> {
         return linkedBeanNameList;
