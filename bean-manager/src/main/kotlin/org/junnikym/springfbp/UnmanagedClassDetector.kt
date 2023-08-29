@@ -15,6 +15,7 @@ class UnmanagedClassDetector(
 ) {
 
     fun detect(clazz: Class<*>): Collection<DetectedUnmanagedClass> {
+
         val classResourcePath = ClassUtils.convertClassNameToResourcePath(clazz.name)
         val inputStream = ClassLoader
                 .getSystemClassLoader()
@@ -22,17 +23,32 @@ class UnmanagedClassDetector(
 
         val classReader = ClassReader(inputStream)
         val classWriter = ClassWriter(classReader, 0)
-        val detectedClassSet = mutableSetOf<DetectedUnmanagedClass>()
-
+        val detectedClasses = mutableListOf<DetectedUnmanagedClass>()
         val unmanagedClassVisitor = UnmanagedClassVisitor(
                 clazz = clazz,
                 classVisitor = classWriter,
                 beanManagingTargetFilter = beanManagingTargetFilter,
-                detectedClassSet = detectedClassSet
+                detectedClasses = detectedClasses
         )
         classReader.accept(unmanagedClassVisitor, 0)
 
-        return detectedClassSet
+        filteringDuplicateInDetectedClasses(detectedClasses)
+
+        return detectedClasses
+    }
+
+    private fun filteringDuplicateInDetectedClasses(detectedClasses: MutableCollection<DetectedUnmanagedClass>) {
+        val classesByMethodName = detectedClasses.groupBy { it.methodName }
+        classesByMethodName.keys.forEach { key->
+            val classesInMethod = classesByMethodName[key]
+            classesInMethod
+                    ?.filter { it.generatorName == null }
+                    ?.filter { it.generatedClass.isInterface }
+                    ?.filter { interfaceClass->
+                        classesInMethod.any { it.generatedClass.isAssignableFrom(interfaceClass.generatedClass) }
+                    }
+                    ?.forEach (detectedClasses::remove)
+        }
     }
 
 }
@@ -41,7 +57,7 @@ private class UnmanagedClassVisitor(
         private val clazz: Class<*>,
         classVisitor: ClassVisitor,
         private val beanManagingTargetFilter: BeanManagingTargetFilter,
-        private val detectedClassSet: MutableSet<DetectedUnmanagedClass>,
+        private val detectedClasses: MutableCollection<DetectedUnmanagedClass>,
 ) : ClassVisitor(ASM_API, classVisitor) {
 
     override fun visitMethod(access: Int, name: String, desc: String, signature: String?, exceptions: Array<out String>?): MethodVisitor? {
@@ -52,7 +68,7 @@ private class UnmanagedClassVisitor(
                 methodName = name,
                 methodVisitor = methodVisitor,
                 beanManagingTargetFilter = beanManagingTargetFilter,
-                detectedClassSet = detectedClassSet
+                detectedClasses = detectedClasses
         )
     }
 
@@ -64,15 +80,16 @@ private class UnmanagedClassMethodVisitor(
         private val methodName: String,
         methodVisitor: MethodVisitor,
         private val beanManagingTargetFilter: BeanManagingTargetFilter,
-        private val detectedClassSet: MutableSet<DetectedUnmanagedClass>,
+        private val detectedClasses: MutableCollection<DetectedUnmanagedClass>,
 ) : MethodVisitor(ASM_API, methodVisitor) {
 
-    private val staticGetterExecutions = mutableSetOf<Class<*>>()
+    // key: return type, value: name of static field
+    private val staticGetterExecutions = mutableMapOf<Class<*>, String>()
 
     override fun visitFieldInsn(opcode: Int, owner: String?, name: String?, descriptor: String?) {
         when(opcode) {
             Opcodes.GETSTATIC-> doWhenStaticFieldGetExecuted(name, descriptor)
-            Opcodes.PUTFIELD-> doWhenAssignmentExecuted(owner, descriptor)
+            Opcodes.PUTFIELD-> doWhenAssignmentExecuted(owner, name, descriptor)
         }
 
         super.visitFieldInsn(opcode, owner, name, descriptor)
@@ -82,7 +99,10 @@ private class UnmanagedClassMethodVisitor(
         when(opcode) {
             Opcodes.INVOKEVIRTUAL-> doWhenMethodExecuted(owner, name, desc)
             Opcodes.INVOKESTATIC-> doWhenMethodExecuted(owner, name, desc)
-            Opcodes.INVOKESPECIAL-> doWhenConstructorExecuted(owner, name, desc)
+            Opcodes.INVOKESPECIAL-> {
+                if(name == "<init>") doWhenConstructorExecuted(owner, name, desc)
+                else doWhenMethodExecuted(owner, name, desc)
+            }
         }
 
         super.visitMethodInsn(opcode, owner, name, desc, itf)
@@ -93,19 +113,17 @@ private class UnmanagedClassMethodVisitor(
             methodName: String,
             methodDescriptor: String,
     ) {
-        if(methodName != "<init>")
-            return
-
         val generatedClass = getClassFromPath(methodOwner)
         if(!beanManagingTargetFilter.isManageTarget(generatedClass))
             return
 
         detectedUnmanagedClassOf(
                 generatedClass,
+                methodName,
                 methodDescriptor,
                 DetectedUnmanagedClass.GeneratorType.Constructor,
                 generatedClass,
-        ).let(detectedClassSet::add)
+        ).let(detectedClasses::add)
     }
 
     private fun doWhenMethodExecuted(
@@ -127,10 +145,11 @@ private class UnmanagedClassMethodVisitor(
 
         detectedUnmanagedClassOf(
                 method.returnType,
+                methodName,
                 methodDescriptor,
                 DetectedUnmanagedClass.GeneratorType.Method,
                 factoryClass,
-        ).let(detectedClassSet::add)
+        ).let(detectedClasses::add)
     }
 
     private fun doWhenStaticFieldGetExecuted(
@@ -148,37 +167,36 @@ private class UnmanagedClassMethodVisitor(
         if(!beanManagingTargetFilter.isManageTarget(fieldClass))
             return
 
-        staticGetterExecutions.add(fieldClass)
+        staticGetterExecutions[fieldClass] = fieldName
     }
 
-    private fun doWhenAssignmentExecuted(fieldOwner: String?, fieldDescriptor: String?) {
-        if(fieldDescriptor.isNullOrBlank() || fieldOwner.isNullOrBlank())
+    private fun doWhenAssignmentExecuted(fieldOwner: String?, fieldName: String?, fieldDescriptor: String?) {
+        if(fieldDescriptor.isNullOrBlank() || fieldOwner.isNullOrBlank() || fieldName.isNullOrBlank())
             return
 
         val fieldTypeName = Type.getType(fieldDescriptor)
         val fieldClass = Class.forName(fieldTypeName.className)
 
-        val assignFromStatic = staticGetterExecutions
-                .find(fieldClass::isAssignableFrom)
-                ?.let { staticGetterExecutions.remove(it); it }
-                ?.javaClass
+        val assignFieldClass = staticGetterExecutions.keys.find(fieldClass::isAssignableFrom)
+        val assignFieldName = staticGetterExecutions[assignFieldClass]
+        staticGetterExecutions.remove(assignFieldClass)
 
-        val assignedClass = assignFromStatic ?: fieldClass
+        val assignedClass = assignFieldClass ?: fieldClass
         if(!beanManagingTargetFilter.isManageTarget(assignedClass))
             return
 
-        val ownerClass = getClassFromPath(fieldOwner)
-
         detectedUnmanagedClassOf(
                 fieldClass,
+                assignFieldName,
                 fieldDescriptor,
                 DetectedUnmanagedClass.GeneratorType.Field,
-                ownerClass
-        ).let(detectedClassSet::add)
+                getClassFromPath(fieldOwner)
+        ).let(detectedClasses::add)
     }
 
     private fun detectedUnmanagedClassOf(
             generatedClass: Class<*>,
+            generatorName: String?,
             generatorDesc: String,
             generatorType: DetectedUnmanagedClass.GeneratorType,
             generatorOwner: Class<*>,
@@ -188,10 +206,10 @@ private class UnmanagedClassMethodVisitor(
                 fromClass = this.clazz,
                 methodName = this.methodName,
                 generatedClass = generatedClass,
+                generatorName = generatorName,
                 generatorDesc = generatorDesc,
                 generatorType = generatorType,
                 generatorOwner = generatorOwner,
-                isInterface = generatedClass.isInterface,
         )
     }
 

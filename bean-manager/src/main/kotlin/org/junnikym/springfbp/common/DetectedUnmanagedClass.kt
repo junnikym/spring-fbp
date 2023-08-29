@@ -6,10 +6,10 @@ data class DetectedUnmanagedClass(
         val fromClass: Class<*>,
         val methodName: String? = null,
         val generatedClass: Class<*>,
+        val generatorName: String?,
         val generatorDesc: String,
         val generatorType: GeneratorType,
         val generatorOwner: Class<*>,
-        val isInterface: Boolean,
 ) {
 
     enum class GeneratorType { Method, Constructor, Field }
@@ -35,10 +35,10 @@ data class DetectedUnmanagedClass(
                 fromClass = $fromClass,
                 methodName = $methodName,
                 generatedClass = $generatedClass,
+                generatorName = $generatorName,
                 generatorDesc = $generatorDesc,
                 generatorType = $generatorType,
                 generatorOwner = $generatorOwner,
-                isInterface = $isInterface,
             }
         """.trimIndent()
     }
