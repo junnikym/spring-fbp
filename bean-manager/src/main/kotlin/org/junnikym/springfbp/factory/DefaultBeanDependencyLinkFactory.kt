@@ -56,8 +56,7 @@ class DefaultBeanDependencyLinkFactory : BeanDependencyLinkFactory {
         val name = link.to.name
         addToMap(name, link, linkNameMap)
 
-        val clazz = AopProxyUtils.ultimateTargetClass(link.to.bean);
-        addToMap(clazz, link, linkClassMap)
+        addToMap(link.to.clazz, link, linkClassMap)
     }
 
     private fun addToReverseLinkMap(link: BeanDependencyLink) {
@@ -154,8 +153,16 @@ class DefaultBeanDependencyLinkFactory : BeanDependencyLinkFactory {
         return getLinkedClasses(getLinks(clazz))
     }
 
+    override fun isLinked(from: String, to: String): Boolean {
+        return getLinks(from).any { it.from.name == to }
+    }
+
+    override fun isLinked(from: Class<*>, to: Class<*>): Boolean {
+        return getLinks(from).any { AopProxyUtils.ultimateTargetClass(it.from.clazz) == to }
+    }
+
     private fun getLinkedClasses(links: Collection<BeanDependencyLink>): Collection<Class<*>> {
-        return links.map { AopProxyUtils.ultimateTargetClass(it.from.bean) }
+        return links.map { AopProxyUtils.ultimateTargetClass(it.from.clazz) }
     }
 
 

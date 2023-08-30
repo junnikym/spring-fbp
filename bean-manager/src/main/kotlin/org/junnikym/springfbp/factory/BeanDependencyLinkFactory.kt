@@ -40,6 +40,10 @@ interface BeanDependencyLinkFactory {
 
     fun getLinkedClasses(clazz: Class<*>): Collection<Class<*>>
 
+    fun isLinked(from: String, to: String): Boolean
+
+    fun isLinked(from: Class<*>, to: Class<*>): Boolean
+
 
 
     fun getLinkedBeanNames(): Set<String>;
