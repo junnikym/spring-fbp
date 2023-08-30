@@ -425,8 +425,7 @@ class DefaultBeanDependencyLinkFactoryTest(
         beanName: String
     ): BeanDependencyNode {
         val bean = beanFactory.getBean("dummyBeanA")
-        val definition = beanFactory.getBeanDefinition("dummyBeanA")
-        return BeanDependencyNode(beanName, bean, definition)
+        return BeanDependencyNode(beanName, bean)
     }
 
 }

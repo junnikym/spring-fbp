@@ -44,11 +44,10 @@ class LayerQueryServiceImpl (
         val linkedWith = beanDependencyLinkFactory
                 .getLinks(beanName)
                 .map {
-                    val cls = AopProxyUtils.ultimateTargetClass(it.from.bean)
                     BeanWithLayer.LinkedBean (
                             beanName = it.from.name,
-                            beanClassQualifiedName = cls.name,
-                            beanClassSimpleName = cls.simpleName
+                            beanClassQualifiedName = it.from.clazz.name,
+                            beanClassSimpleName = it.from.clazz.simpleName
                     )
                 }
 
