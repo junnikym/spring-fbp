@@ -290,7 +290,7 @@ class DefaultBeanDependencyLinkFactoryTest(
             linkEtoD: BeanDependencyLink,
     ) {
         // [ verify link map ]
-        val linkMap = getFactoryField("linkMap") as HashMap<*, *>
+        val linkMap = getFactoryField("linkNameMap") as Map<*, *>
         assertEquals(linkMap.keys.size, 3)
 
         // supposed to be
@@ -425,8 +425,7 @@ class DefaultBeanDependencyLinkFactoryTest(
         beanName: String
     ): BeanDependencyNode {
         val bean = beanFactory.getBean("dummyBeanA")
-        val definition = beanFactory.getBeanDefinition("dummyBeanA")
-        return BeanDependencyNode(beanName, bean, definition)
+        return BeanDependencyNode(beanName, bean)
     }
 
 }

@@ -44,20 +44,18 @@ class LayerQueryServiceImpl (
         val linkedWith = beanDependencyLinkFactory
                 .getLinks(beanName)
                 .map {
-                    val cls = AopProxyUtils.ultimateTargetClass(it.from.bean)
                     BeanWithLayer.LinkedBean (
                             beanName = it.from.name,
-                            beanClassQualifiedName = cls.name,
-                            beanClassSimpleName = cls.simpleName
+                            beanClassQualifiedName = it.from.clazz.name,
+                            beanClassSimpleName = it.from.clazz.simpleName
                     )
                 }
 
-        val beanClass = AopProxyUtils.ultimateTargetClass(beanFactory.getBean(beanName))
-
+        val node = beanDependencyNodeFactory.get(beanName)!!
         return BeanWithLayer(
                 beanName = beanName,
-                beanClassQualifiedName = beanClass.name,
-                beanClassSimpleName = beanClass.simpleName,
+                beanClassQualifiedName = node.clazz.name,
+                beanClassSimpleName = node.clazz.simpleName,
                 linkedWith = linkedWith,
                 layer = beanLayerFactory.get(beanName),
         )

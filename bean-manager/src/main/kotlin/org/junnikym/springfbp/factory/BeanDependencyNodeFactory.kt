@@ -14,4 +14,10 @@ interface BeanDependencyNodeFactory {
 
     fun get(name: String): BeanDependencyNode?
 
+    fun get(clazz: Class<*>): BeanDependencyNode?
+
+    fun exists(name: String): Boolean
+
+    fun exists(clazz: Class<*>): Boolean
+
 }

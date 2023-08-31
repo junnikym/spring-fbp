@@ -97,8 +97,7 @@ class TestFactoryProvider(
 
     private fun beanDependencyNodeOf(beanName: String): BeanDependencyNode {
         val bean = beanFactory.getBean(beanName)
-        val definition = beanFactory.getBeanDefinition(beanName)
-        return BeanDependencyNode(beanName, bean, definition)
+        return BeanDependencyNode(beanName, bean)
     }
 
 

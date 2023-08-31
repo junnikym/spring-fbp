@@ -1,6 +1,7 @@
 package org.junnikym.springfbp.factory
 
 import org.junnikym.springfbp.common.BeanDependencyLink
+import org.springframework.aop.framework.AopProxyUtils
 import org.springframework.stereotype.Component
 
 @Component
@@ -8,17 +9,27 @@ class DefaultBeanDependencyLinkFactory : BeanDependencyLinkFactory {
 
     // key : name of from (bean); parent node
     // val : child node
-    private val linkMap : HashMap<String, ArrayList<BeanDependencyLink>> = HashMap()
+    private val linkNameMap =
+            mutableMapOf<String, MutableList<BeanDependencyLink>>()
+                    as MutableMap<String, MutableCollection<BeanDependencyLink>>
 
-    // key : name of from (bean); child node
+    // key : class of from (bean); parent node
+    // val : child node
+    private val linkClassMap =
+            mutableMapOf<Class<*>, MutableSet<BeanDependencyLink>>()
+                    as MutableMap<Class<*>, MutableCollection<BeanDependencyLink>>
+
+    // key : name of to (bean); child node
     // val : parent node
-    private val reverseLinkMap : HashMap<String, ArrayList<BeanDependencyLink>> = HashMap()
+    private val reverseLinkMap =
+            mutableMapOf<String, MutableList<BeanDependencyLink>>()
+                    as MutableMap<String, MutableCollection<BeanDependencyLink>>
 
-    private val linkList : ArrayList<BeanDependencyLink> = ArrayList()
+    private val linkList = mutableListOf<BeanDependencyLink>()
 
-    private val rootNodeNameSet : HashSet<String> = HashSet()
+    private val rootNodeNameSet = mutableSetOf<String>()
 
-    private val linkedBeanNameList : HashSet<String> = HashSet()
+    private val linkedBeanNameList = mutableSetOf<String>()
 
     override fun add(link: BeanDependencyLink) {
         addToListedBeanList(link)
@@ -43,7 +54,9 @@ class DefaultBeanDependencyLinkFactory : BeanDependencyLinkFactory {
 
     private fun addToLinkMap(link: BeanDependencyLink) {
         val name = link.to.name
-        addToMap(name, link, linkMap)
+        addToMap(name, link, linkNameMap)
+
+        addToMap(link.to.clazz, link, linkClassMap)
     }
 
     private fun addToReverseLinkMap(link: BeanDependencyLink) {
@@ -51,14 +64,14 @@ class DefaultBeanDependencyLinkFactory : BeanDependencyLinkFactory {
         addToMap(name, link, reverseLinkMap)
     }
 
-    private fun addToMap(
-            name: String,
+    private fun <K> addToMap(
+            key: K,
             link: BeanDependencyLink,
-            map: HashMap<String, ArrayList<BeanDependencyLink>>
+            map: MutableMap<K, MutableCollection<BeanDependencyLink>>
     ) {
-        val linkList = map.getOrDefault(name, ArrayList())
+        val linkList = map.getOrDefault(key, ArrayList())
         linkList.add(link)
-        map[name] = linkList
+        map[key] = linkList
     }
 
     private fun updateRootNodeNames(link: BeanDependencyLink) {
@@ -86,11 +99,11 @@ class DefaultBeanDependencyLinkFactory : BeanDependencyLinkFactory {
         return reverseLinkMap.containsKey(link.to.name)
     }
 
-    override fun getParentNames(beanName: String): List<String> {
+    override fun getParentNames(beanName: String): Collection<String> {
         return getLinksWithParent(beanName).map { it.to.name }
     }
 
-    override fun getLinksWithParent(beanName: String): List<BeanDependencyLink> {
+    override fun getLinksWithParent(beanName: String): Collection<BeanDependencyLink> {
         if(!reverseLinkMap.containsKey(beanName))
             return listOf()
 
@@ -101,30 +114,56 @@ class DefaultBeanDependencyLinkFactory : BeanDependencyLinkFactory {
         return rootNodeNameSet.contains(beanName)
     }
 
-    override fun getRootLinks(): List<BeanDependencyLink> {
+    override fun getRootLinks(): Collection<BeanDependencyLink> {
         return rootNodeNameSet
-            .filter(linkMap::containsKey)
-            .map { linkMap.getOrDefault(it, ArrayList()) }
+            .filter(linkNameMap::containsKey)
+            .map { linkNameMap.getOrDefault(it, ArrayList()) }
             .flatten()
     }
 
-    override fun getRootNames(): List<String> {
+    override fun getRootNames(): Collection<String> {
         return rootNodeNameSet.map { it }
     }
 
 
 
-    override fun getLinks(): List<BeanDependencyLink> {
+    override fun getLinks(): Collection<BeanDependencyLink> {
         return linkList
     }
 
-    override fun getLinks(name: String): List<BeanDependencyLink> {
-        if(!linkMap.containsKey(name))
+    override fun getLinks(name: String): Collection<BeanDependencyLink> {
+        if(!linkNameMap.containsKey(name))
             return listOf()
 
-        return linkMap[name]!!
+        return linkNameMap[name]!!
     }
 
+    override fun getLinks(clazz: Class<*>): Collection<BeanDependencyLink> {
+        if(!linkClassMap.containsKey(clazz))
+            return listOf()
+
+        return linkClassMap[clazz]!!
+    }
+
+    override fun getLinkedClasses(name: String): Collection<Class<*>> {
+        return getLinkedClasses(getLinks(name))
+    }
+
+    override fun getLinkedClasses(clazz: Class<*>): Collection<Class<*>> {
+        return getLinkedClasses(getLinks(clazz))
+    }
+
+    override fun isLinked(from: String, to: String): Boolean {
+        return getLinks(from).any { it.from.name == to }
+    }
+
+    override fun isLinked(from: Class<*>, to: Class<*>): Boolean {
+        return getLinks(from).any { it.from.clazz == to }
+    }
+
+    private fun getLinkedClasses(links: Collection<BeanDependencyLink>): Collection<Class<*>> {
+        return links.map { AopProxyUtils.ultimateTargetClass(it.from.clazz) }
+    }
 
 
     override fun getLinkedBeanNames(): Set<String> {
