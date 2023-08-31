@@ -55,11 +55,10 @@ class InitializingBeanDetector(
             if(fromNode == null || generatedNode == null)
                 null
             else
-                BeanDependencyLink(fromNode, generatedNode)
+                BeanDependencyLink(generatedNode, fromNode)
         }.distinct()
 
         test.forEach(linkFactory::add)
-        test.forEach { println(it.hashCode()) }
     }
 
     private fun getBeanDependencyNode(beanName: String): BeanDependencyNode? {

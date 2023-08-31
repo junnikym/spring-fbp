@@ -27,7 +27,6 @@ class BeanMonitoringAspectConfig(
      * @return proxied target bean
      */
     private fun createProxy(bean: Any): Any {
-        println(bean.javaClass.name)
         val proxyFactory = ProxyFactory(bean)
         val aspect = BeanExecutionMonitoringAspect(bean, beanManagingTargetFilter, beanExecutionMonitoringService)
         proxyFactory.addAdvice(aspect)
