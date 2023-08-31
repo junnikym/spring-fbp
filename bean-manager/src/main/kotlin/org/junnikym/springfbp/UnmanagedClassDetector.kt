@@ -1,6 +1,9 @@
 package org.junnikym.springfbp
 
+import org.junnikym.springfbp.common.BeanDependencyNode
 import org.junnikym.springfbp.common.DetectedUnmanagedClass
+import org.junnikym.springfbp.factory.BeanDependencyLinkFactory
+import org.junnikym.springfbp.factory.BeanDependencyNodeFactory
 import org.junnikym.springfbp.filter.BeanManagingTargetFilter
 import org.junnikym.springfbp.filter.IgnoreManage
 import org.objectweb.asm.*
@@ -11,11 +14,21 @@ import org.springframework.util.ClassUtils
 @Component
 @IgnoreManage
 class UnmanagedClassDetector(
+        private val beanDependencyLinkFactory: BeanDependencyLinkFactory,
+        private val beanDependencyNodeFactory: BeanDependencyNodeFactory,
         private val beanManagingTargetFilter: BeanManagingTargetFilter,
 ) {
 
-    fun detect(clazz: Class<*>): Collection<DetectedUnmanagedClass> {
+    fun detectInFactory(): Collection<DetectedUnmanagedClass> {
+        return beanDependencyNodeFactory.getAll()
+                .asSequence()
+                .mapNotNull(BeanDependencyNode::clazz)
+                .map(::detect)
+                .flatten().toList()
+                .filter { beanDependencyLinkFactory.isLinked(it.fromClass, it.generatedClass).not() }
+    }
 
+    fun detect(clazz: Class<*>): Collection<DetectedUnmanagedClass> {
         val classResourcePath = ClassUtils.convertClassNameToResourcePath(clazz.name)
         val inputStream = ClassLoader
                 .getSystemClassLoader()
