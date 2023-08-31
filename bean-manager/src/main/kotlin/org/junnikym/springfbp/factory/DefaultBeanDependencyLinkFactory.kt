@@ -158,7 +158,7 @@ class DefaultBeanDependencyLinkFactory : BeanDependencyLinkFactory {
     }
 
     override fun isLinked(from: Class<*>, to: Class<*>): Boolean {
-        return getLinks(from).any { AopProxyUtils.ultimateTargetClass(it.from.clazz) == to }
+        return getLinks(from).any { it.from.clazz == to }
     }
 
     private fun getLinkedClasses(links: Collection<BeanDependencyLink>): Collection<Class<*>> {
