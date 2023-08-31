@@ -1,6 +1,6 @@
 package org.junnikym.springfbp.service
 
-import org.junnikym.springfbp.IgnoreManage
+import org.junnikym.springfbp.filter.IgnoreManage
 
 @IgnoreManage
 interface BeanLayerFactory {

@@ -1,5 +1,6 @@
-package org.junnikym.springfbp
+package org.junnikym.springfbp.filter
 
+import org.junnikym.springfbp.TypeClassFactory.isPrimitiveType
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.stereotype.Component
@@ -22,6 +23,9 @@ class BeanManagingTargetFilter (
     }
 
     fun isInBasePackage(beanClass: Class<*>): Boolean {
+        if(isPrimitiveType(beanClass.name))
+            return false
+        
         return isInBasePackage(beanClass.`package`.name)
     }
 

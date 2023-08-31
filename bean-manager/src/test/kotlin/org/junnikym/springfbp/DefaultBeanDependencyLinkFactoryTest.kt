@@ -3,6 +3,9 @@ package org.junnikym.springfbp
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Order
 import org.junit.jupiter.api.Test
+import org.junnikym.springfbp.common.BeanDependencyLink
+import org.junnikym.springfbp.common.BeanDependencyNode
+import org.junnikym.springfbp.factory.DefaultBeanDependencyLinkFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory
 import org.springframework.boot.test.context.SpringBootTest
@@ -281,13 +284,13 @@ class DefaultBeanDependencyLinkFactoryTest(
 
 
     private fun verifyLinkMap_whenAdd(
-        linkAtoB: BeanDependencyLink,
-        linkBtoC: BeanDependencyLink,
-        linkBtoD: BeanDependencyLink,
-        linkEtoD: BeanDependencyLink,
+            linkAtoB: BeanDependencyLink,
+            linkBtoC: BeanDependencyLink,
+            linkBtoD: BeanDependencyLink,
+            linkEtoD: BeanDependencyLink,
     ) {
         // [ verify link map ]
-        val linkMap = getFactoryField("linkMap") as HashMap<*, *>
+        val linkMap = getFactoryField("linkNameMap") as Map<*, *>
         assertEquals(linkMap.keys.size, 3)
 
         // supposed to be
@@ -325,10 +328,10 @@ class DefaultBeanDependencyLinkFactoryTest(
     }
 
     private fun verifyReverseLinkMap_whenAdd(
-        linkAtoB: BeanDependencyLink,
-        linkBtoC: BeanDependencyLink,
-        linkBtoD: BeanDependencyLink,
-        linkEtoD: BeanDependencyLink,
+            linkAtoB: BeanDependencyLink,
+            linkBtoC: BeanDependencyLink,
+            linkBtoD: BeanDependencyLink,
+            linkEtoD: BeanDependencyLink,
     ) {
         // [ verify link map ]
         val linkMap = getFactoryField("reverseLinkMap") as HashMap<*, *>
@@ -369,10 +372,10 @@ class DefaultBeanDependencyLinkFactoryTest(
     }
 
     private fun verifyLinkList_whenAdd(
-        linkAtoB: BeanDependencyLink,
-        linkBtoC: BeanDependencyLink,
-        linkBtoD: BeanDependencyLink,
-        linkEtoD: BeanDependencyLink,
+            linkAtoB: BeanDependencyLink,
+            linkBtoC: BeanDependencyLink,
+            linkBtoD: BeanDependencyLink,
+            linkEtoD: BeanDependencyLink,
     ) {
         val linkList = HashSet(getFactoryField("linkList") as ArrayList<*>);
         assertEquals(linkList.size, 4)
@@ -383,10 +386,10 @@ class DefaultBeanDependencyLinkFactoryTest(
     }
 
     private fun verifyRootNodeNameSet_whenAdd(
-        linkAtoB: BeanDependencyLink,
-        linkBtoC: BeanDependencyLink,
-        linkBtoD: BeanDependencyLink,
-        linkEtoD: BeanDependencyLink,
+            linkAtoB: BeanDependencyLink,
+            linkBtoC: BeanDependencyLink,
+            linkBtoD: BeanDependencyLink,
+            linkEtoD: BeanDependencyLink,
     ) {
         val linkNameSet = getFactoryField("rootNodeNameSet") as HashSet<*>
         assertEquals(linkNameSet.size, 2)
@@ -422,8 +425,7 @@ class DefaultBeanDependencyLinkFactoryTest(
         beanName: String
     ): BeanDependencyNode {
         val bean = beanFactory.getBean("dummyBeanA")
-        val definition = beanFactory.getBeanDefinition("dummyBeanA")
-        return BeanDependencyNode(beanName, bean, definition)
+        return BeanDependencyNode(beanName, bean)
     }
 
 }

@@ -138,9 +138,10 @@ class BeanDependencyNode {
 
     getLinkLineCorners(targetId) {
         const target = BeanDependencyNode.nodes.get(targetId)
+
         const from = { x: 0, y: 0 }
         const to = {
-            x: (target.center.x/2) - this.center.x,
+            x: (target.center.x - (target.width/2)) - (this.center.x + (this.width/2)),
             y: target.center.y - this.center.y
         }
 
