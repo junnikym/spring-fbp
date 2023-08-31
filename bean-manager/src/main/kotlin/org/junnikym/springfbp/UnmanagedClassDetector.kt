@@ -146,12 +146,20 @@ private class UnmanagedClassMethodVisitor(
     ) {
         val factoryClass = getClassFromPath(methodOwner)
         val methodType = Type.getMethodType(methodDescriptor)
-        val methodArgTypes = methodType.argumentTypes.map { TypeClassFactory.of(it.className) }
-        val method = factoryClass.getDeclaredMethod(methodName, *methodArgTypes.toTypedArray())
+
+        val methodArgTypes = try {
+            methodType.argumentTypes.map { TypeClassFactory.of(it.className) }
+        } catch (e: ClassNotFoundException) { return }
+
+        val method = try {
+            factoryClass.getDeclaredMethod(methodName, *methodArgTypes.toTypedArray())
+        } catch (e: NoSuchMethodException) { return }
 
         if(method.returnType.name != methodType.returnType.className)
             return
         if(method.returnType.name == "void")
+            return
+        if(method.returnType.isArray || method.returnType.isPrimitive)
             return
         if(!beanManagingTargetFilter.isManageTarget(method.returnType))
             return
