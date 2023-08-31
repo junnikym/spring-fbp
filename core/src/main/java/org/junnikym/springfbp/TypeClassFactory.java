@@ -1,28 +1,33 @@
 package org.junnikym.springfbp;
 
+import java.util.HashMap;
+import java.util.Map;
+
 public class TypeClassFactory {
 
-    static private Class<?> intClass = int.class;
-    static private Class<?> booleanClass = boolean.class;
-    static private Class<?> charClass = char.class;
-    static private Class<?> doubleClass = double.class;
-    static private Class<?> byteClass = byte.class;
-    static private Class<?> shortClass = short.class;
-    static private Class<?> longClass = long.class;
-    static private Class<?> floatClass = float.class;
+    // key: type name, value: Class<?>
+    static private Map<String, Class<?>> primitiveClasses = new HashMap<>() {{
+        put( "int", int.class );
+        put( "boolean", boolean.class );
+        put( "char", char.class );
+        put( "double", double.class );
+        put( "byte", byte.class );
+        put( "short", short.class );
+        put( "long", long.class );
+        put( "float", float.class );
+        put( "void", void.class );
+    }};
 
-    static Class<?> of(String type) throws ClassNotFoundException {
-        switch(type) {
-            case "int": return intClass;
-            case "boolean": return booleanClass;
-            case "char": return charClass;
-            case "double": return doubleClass;
-            case "byte": return byteClass;
-            case "short": return shortClass;
-            case "long": return longClass;
-            case "float": return floatClass;
-            default: return Class.forName(type);
-        }
+    static public Class<?> of(String type) throws ClassNotFoundException {
+        final Class<?> clazz = primitiveClasses.get(type);
+        if(clazz == null)
+            return Class.forName(type);
+
+        return clazz;
+    }
+
+    static public boolean isPrimitiveType(String type) {
+        return primitiveClasses.keySet().contains(type);
     }
 
 }
