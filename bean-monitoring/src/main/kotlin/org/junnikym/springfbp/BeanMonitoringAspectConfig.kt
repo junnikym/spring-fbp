@@ -2,7 +2,6 @@ package org.junnikym.springfbp
 
 import org.junnikym.springfbp.filter.BeanManagingTargetFilter
 import org.junnikym.springfbp.filter.IgnoreManage
-import org.springframework.aop.framework.ProxyFactory
 import org.springframework.beans.factory.config.BeanPostProcessor
 import org.springframework.context.annotation.Configuration
 
@@ -10,27 +9,14 @@ import org.springframework.context.annotation.Configuration
 @IgnoreManage
 class BeanMonitoringAspectConfig(
         private val beanManagingTargetFilter: BeanManagingTargetFilter,
-        private val beanExecutionMonitoringService: BeanExecutionMonitoringService,
+        private val beanMonitoringProxyFactory: BeanMonitoringProxyFactory,
 ) : BeanPostProcessor {
 
     override fun postProcessAfterInitialization(bean: Any, beanName: String): Any? {
         val isTarget = beanManagingTargetFilter.isManageTarget(bean::class)
-        val proxyBean = if(isTarget) createProxy(bean) else bean
+        val proxyBean = if(isTarget) beanMonitoringProxyFactory.of(bean) else bean
 
         return super.postProcessAfterInitialization(proxyBean, beanName)
-    }
-
-    /**
-     * create proxy object for monitoring bean
-     *
-     * @param bean target bean for proxy
-     * @return proxied target bean
-     */
-    private fun createProxy(bean: Any): Any {
-        val proxyFactory = ProxyFactory(bean)
-        val aspect = BeanExecutionMonitoringAspect(bean, beanManagingTargetFilter, beanExecutionMonitoringService)
-        proxyFactory.addAdvice(aspect)
-        return proxyFactory.proxy
     }
 
 }
