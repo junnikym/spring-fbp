@@ -206,11 +206,16 @@ private class UnmanagedClassMethodVisitor(
         if(!beanManagingTargetFilter.isManageTarget(assignedClass))
             return
 
+        val generator = when(assignFieldName) {
+            null -> DetectedUnmanagedClass.GeneratorType.Field
+            else -> DetectedUnmanagedClass.GeneratorType.Factory
+        }
+
         detectedUnmanagedClassOf(
                 fieldClass,
                 assignFieldName,
                 fieldDescriptor,
-                DetectedUnmanagedClass.GeneratorType.Field,
+                generator,
                 getClassFromPath(fieldOwner)
         ).let(detectedClasses::add)
     }
