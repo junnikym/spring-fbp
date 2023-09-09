@@ -2,7 +2,6 @@ package org.junnikym.springfbp.service
 
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
-import org.junnikym.springfbp.beans.TestFactoryProvider
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.test.context.TestPropertySource
@@ -10,19 +9,13 @@ import org.springframework.test.context.TestPropertySource
 @SpringBootTest
 @TestPropertySource(locations= ["classpath:test.properties"])
 class LayerQueryFactoryTest(
-        @Autowired testFactoryProvider: TestFactoryProvider,
+        @Autowired private val beanLayerFactory: BeanLayerFactory,
 ) {
-
-    private val beanLayerFactory: BeanLayerFactory;
-
-    init {
-        this.beanLayerFactory = testFactoryProvider.layerFactoryOf()
-        this.beanLayerFactory.update()
-    }
 
     @Test
     fun get_bean_layers() {
         // given
+        beanLayerFactory.update()
 
         // when
         val rootLayer = this.beanLayerFactory.get("testRootBean");
