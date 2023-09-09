@@ -12,6 +12,8 @@ plugins {
 }
 
 dependencies {
+    implementation("org.springframework:spring-beans")
+    implementation("org.springframework:spring-context")
     implementation("org.jetbrains.kotlin:kotlin-stdlib")
     implementation("org.jetbrains.kotlin:kotlin-reflect")
     implementation("com.fasterxml.jackson.core:jackson-databind")
