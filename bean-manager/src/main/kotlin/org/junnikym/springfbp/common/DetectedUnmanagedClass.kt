@@ -12,7 +12,7 @@ data class DetectedUnmanagedClass(
         val generatorOwner: Class<*>,
 ) {
 
-    enum class GeneratorType { Method, Constructor, Field }
+    enum class GeneratorType { Method, Constructor, Field, Factory }
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true

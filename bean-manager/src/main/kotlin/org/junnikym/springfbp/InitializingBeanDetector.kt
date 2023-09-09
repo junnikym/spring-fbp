@@ -8,7 +8,6 @@ import org.junnikym.springfbp.factory.BeanDependencyNodeFactory
 import org.junnikym.springfbp.filter.BeanManagingTargetFilter
 import org.junnikym.springfbp.filter.IgnoreManage
 import org.springframework.aop.framework.AopProxyUtils
-import org.springframework.beans.factory.InitializingBean
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory
 import org.springframework.context.annotation.Configuration
 
@@ -20,7 +19,7 @@ class InitializingBeanDetector(
         private val nodeFactory: BeanDependencyNodeFactory,
         private val unmanagedClassDetector: UnmanagedClassDetector,
         private val beanManagingTargetFilter: BeanManagingTargetFilter,
-) : InitializingBean {
+) : SynchronizedInitializingBean() {
 
     override fun afterPropertiesSet() {
         addManagedClasses()
@@ -48,7 +47,7 @@ class InitializingBeanDetector(
         addUnmanagedClassesNodeIntoFactory(detectedUnmanagedClasses, DetectedUnmanagedClass::fromClass)
         addUnmanagedClassesNodeIntoFactory(detectedUnmanagedClasses, DetectedUnmanagedClass::generatedClass)
 
-        val test = detectedUnmanagedClasses.mapNotNull {
+        detectedUnmanagedClasses.mapNotNull {
             val fromNode = nodeFactory.get(it.fromClass)
             val generatedNode = nodeFactory.get(it.generatedClass)
 
@@ -56,13 +55,11 @@ class InitializingBeanDetector(
                 null
             else
                 BeanDependencyLink(generatedNode, fromNode)
-        }.distinct()
-
-        test.forEach(linkFactory::add)
+        }.distinct().forEach(linkFactory::add)
     }
 
     private fun getBeanDependencyNode(beanName: String): BeanDependencyNode? {
-        if(beanName == "initializingBeanDetector")
+        if(beanName == "initializingBeanDetector" || beanName == "synchronizedInitializingBeanExecutor")
             return null;
 
         val bean = beanFactory.getBean(beanName)
