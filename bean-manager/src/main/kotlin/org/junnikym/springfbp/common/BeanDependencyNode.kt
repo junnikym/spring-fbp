@@ -12,11 +12,21 @@ class BeanDependencyNode (name: String, clazz: Class<*>, bean: Any? = null) {
     constructor(name: String, bean: Any): this(
             name,
             AopProxyUtils.ultimateTargetClass(bean),
-            null
+            bean
     )
 
+    fun isManaged(): Boolean {
+        return bean != null
+    }
+
     override fun toString(): String {
-        return name
+        return """
+            BeanDependencyNode {
+                name: $name,
+                clazz: $clazz,
+                bean: $bean
+            }
+        """.trimIndent()
     }
 
     override fun equals(other: Any?): Boolean {
