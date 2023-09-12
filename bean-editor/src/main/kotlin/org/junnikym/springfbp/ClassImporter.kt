@@ -9,6 +9,7 @@ import org.jetbrains.kotlin.config.Services
 import org.springframework.stereotype.Component
 import java.io.File
 import java.net.URLClassLoader
+import java.util.UUID
 import javax.tools.ToolProvider
 
 @Component
@@ -29,8 +30,8 @@ class ClassImporter {
         return javaFiles.associateWith { compileJava(it) } + kotlinFiles.associateWith { compileKotlin(it) }
     }
 
-        val outDir = File("out/java")
     private fun compileJava(file: File): List<Class<*>> {
+        val outDir = File("out/java/${UUID.randomUUID()}")
         val compilerOptions = arrayOf("-classpath", System.getProperty("java.class.path"), "-d", outDir.absolutePath)
 
         val exitCode = ToolProvider.getSystemJavaCompiler()
@@ -41,8 +42,8 @@ class ClassImporter {
         return findClasses(outDir)
     }
 
-        val outDir = File("out/kotlin")
     private fun compileKotlin(file: File): List<Class<*>> {
+        val outDir = File("out/kotlin/${UUID.randomUUID()}")
         val arguments = K2JVMCompilerArguments().apply {
             freeArgs = listOf(file.absolutePath)
             classpath = System.getProperty("java.class.path")
