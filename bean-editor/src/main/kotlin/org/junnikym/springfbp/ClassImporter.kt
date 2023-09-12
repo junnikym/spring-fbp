@@ -14,7 +14,7 @@ import javax.tools.ToolProvider
 @Component
 class ClassImporter {
 
-    fun compile(vararg files: File): List<Class<*>> {
+    private fun compile(vararg files: File): Map<File, List<Class<*>>> {
         val javaFiles = mutableListOf<File>()
         val kotlinFiles = mutableListOf<File>()
 
@@ -26,28 +26,25 @@ class ClassImporter {
             }
         }
 
-        return compileJava(javaFiles) + compileKotlin(kotlinFiles)
+        return javaFiles.associateWith { compileJava(it) } + kotlinFiles.associateWith { compileKotlin(it) }
     }
 
-    private fun compileJava(files: List<File>): List<Class<*>> {
         val outDir = File("out/java")
+    private fun compileJava(file: File): List<Class<*>> {
         val compilerOptions = arrayOf("-classpath", System.getProperty("java.class.path"), "-d", outDir.absolutePath)
 
         val exitCode = ToolProvider.getSystemJavaCompiler()
-                .run(null, null, null, *compilerOptions, *files.map { it.absolutePath }.toTypedArray())
+                .run(null, null, null, *compilerOptions, file.absolutePath)
         if (exitCode != 0)
-            throw ImportFileCompileException(files)
+            throw ImportFileCompileException(file)
 
-        val classLoader = URLClassLoader(arrayOf(outDir.toURI().toURL()))
-        return findClassFile(outDir)
-                .map { filepathToClassname(outDir, it) }
-                .map { classLoader.loadClass(it) }
+        return findClasses(outDir)
     }
 
-    private fun compileKotlin(files: List<File>): List<Class<*>> {
         val outDir = File("out/kotlin")
+    private fun compileKotlin(file: File): List<Class<*>> {
         val arguments = K2JVMCompilerArguments().apply {
-            freeArgs = files.map { it.absolutePath }
+            freeArgs = listOf(file.absolutePath)
             classpath = System.getProperty("java.class.path")
             destination = outDir.absolutePath
         }
@@ -55,18 +52,22 @@ class ClassImporter {
 
         val exitCode = K2JVMCompiler().exec(collector, Services.EMPTY, arguments)
         if (exitCode != ExitCode.OK)
-            throw ImportFileCompileException(files)
+            throw ImportFileCompileException(file)
 
-        val classLoader = URLClassLoader(arrayOf(outDir.toURI().toURL()))
-        return findClassFile(outDir)
-                .map { filepathToClassname(outDir, it) }
+        return findClasses(outDir)
+    }
+
+    private fun findClasses(dir: File): List<Class<*>> {
+        val classLoader = URLClassLoader(arrayOf(dir.toURI().toURL()))
+        return findClassFiles(dir)
+                .map { filepathToClassname(dir, it) }
                 .map { classLoader.loadClass(it) }
     }
 
-    private fun findClassFile(dir: File): Collection<File> {
+    private fun findClassFiles(dir: File): Collection<File> {
         return dir.listFiles().fold(mutableListOf()) { fileList, it->
             if(it.isDirectory)
-                fileList.addAll(findClassFile(it))
+                fileList.addAll(findClassFiles(it))
             if(it.extension == "class")
                 fileList.add(it)
 
