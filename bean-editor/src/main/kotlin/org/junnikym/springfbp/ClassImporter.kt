@@ -6,6 +6,9 @@ import org.jetbrains.kotlin.cli.common.messages.MessageRenderer
 import org.jetbrains.kotlin.cli.common.messages.PrintingMessageCollector
 import org.jetbrains.kotlin.cli.jvm.K2JVMCompiler
 import org.jetbrains.kotlin.config.Services
+import org.springframework.beans.factory.support.BeanDefinitionBuilder
+import org.springframework.beans.factory.support.DefaultListableBeanFactory
+import org.springframework.context.ConfigurableApplicationContext
 import org.springframework.stereotype.Component
 import java.io.File
 import java.net.URLClassLoader
@@ -13,7 +16,39 @@ import java.util.UUID
 import javax.tools.ToolProvider
 
 @Component
-class ClassImporter {
+class ClassImporter (
+        private val applicationContext: ConfigurableApplicationContext
+) {
+
+    private val beanDefinitionRegistry = applicationContext.beanFactory as DefaultListableBeanFactory
+
+    fun importFileAsBean(vararg files: ImportClassFile): Map<String, Any> {
+        val classFiles = files.map(ImportClassFile::classFile).toTypedArray()
+        val classesByFile = compile(*classFiles)
+        classesByFile.keys.map { k->
+            if(classesByFile[k]!!.size != 1)
+                throw IllegalStateException("When appending a bean from a source file, there must exist only one class or at least one class in the source file.")
+        }
+
+        val result = mutableMapOf<String, Any>()
+        files.map {
+            val clazz = classesByFile[it.classFile]!!.first()
+            val definition = BeanDefinitionBuilder.genericBeanDefinition(clazz).beanDefinition
+            val beanName = it.beanName ?: clazz.simpleName.capitalizeFirstLetter()
+
+            beanDefinitionRegistry.registerBeanDefinition(beanName, definition)
+
+            try {
+                result[beanName] = applicationContext.getBean(beanName)
+            } catch (e: Exception) {
+                beanDefinitionRegistry.removeBeanDefinition(beanName)
+                result.keys.map(beanDefinitionRegistry::removeBeanDefinition)
+                throw IllegalStateException("Can not register bean. because \"${e.message}\" occurred when register bean")
+            }
+        }
+
+        return result
+    }
 
     private fun compile(vararg files: File): Map<File, List<Class<*>>> {
         val javaFiles = mutableListOf<File>()
@@ -87,6 +122,14 @@ class ClassImporter {
                 }
                 .let { it.replace(".class", "") }
                 .let { it.replace("/", ".") }
+    }
+
+    private fun String.capitalizeFirstLetter(): String {
+        return if (isEmpty()) {
+            this
+        } else {
+            substring(0, 1).lowercase() + substring(1)
+        }
     }
 
 }
