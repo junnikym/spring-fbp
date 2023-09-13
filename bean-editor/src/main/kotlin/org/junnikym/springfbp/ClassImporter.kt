@@ -6,6 +6,7 @@ import org.jetbrains.kotlin.cli.common.messages.MessageRenderer
 import org.jetbrains.kotlin.cli.common.messages.PrintingMessageCollector
 import org.jetbrains.kotlin.cli.jvm.K2JVMCompiler
 import org.jetbrains.kotlin.config.Services
+import org.junnikym.springfbp.filter.IgnoreManage
 import org.springframework.beans.factory.support.BeanDefinitionBuilder
 import org.springframework.beans.factory.support.DefaultListableBeanFactory
 import org.springframework.stereotype.Component
@@ -15,6 +16,7 @@ import java.util.UUID
 import javax.tools.ToolProvider
 
 @Component
+@IgnoreManage
 class ClassImporter (
         private val beanFactory: DefaultListableBeanFactory,
 ) {
