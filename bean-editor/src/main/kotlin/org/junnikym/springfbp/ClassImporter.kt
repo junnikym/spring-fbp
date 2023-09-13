@@ -8,7 +8,6 @@ import org.jetbrains.kotlin.cli.jvm.K2JVMCompiler
 import org.jetbrains.kotlin.config.Services
 import org.springframework.beans.factory.support.BeanDefinitionBuilder
 import org.springframework.beans.factory.support.DefaultListableBeanFactory
-import org.springframework.context.ConfigurableApplicationContext
 import org.springframework.stereotype.Component
 import java.io.File
 import java.net.URLClassLoader
@@ -17,10 +16,8 @@ import javax.tools.ToolProvider
 
 @Component
 class ClassImporter (
-        private val applicationContext: ConfigurableApplicationContext
+        private val beanFactory: DefaultListableBeanFactory,
 ) {
-
-    private val beanDefinitionRegistry = applicationContext.beanFactory as DefaultListableBeanFactory
 
     fun importFileAsBean(vararg files: ImportClassFile): Map<String, Any> {
         val classFiles = files.map(ImportClassFile::classFile).toTypedArray()
@@ -36,13 +33,13 @@ class ClassImporter (
             val definition = BeanDefinitionBuilder.genericBeanDefinition(clazz).beanDefinition
             val beanName = it.beanName ?: clazz.simpleName.capitalizeFirstLetter()
 
-            beanDefinitionRegistry.registerBeanDefinition(beanName, definition)
+            beanFactory.registerBeanDefinition(beanName, definition)
 
             try {
-                result[beanName] = applicationContext.getBean(beanName)
+                result[beanName] = beanFactory.getBean(beanName)
             } catch (e: Exception) {
-                beanDefinitionRegistry.removeBeanDefinition(beanName)
-                result.keys.map(beanDefinitionRegistry::removeBeanDefinition)
+                beanFactory.removeBeanDefinition(beanName)
+                result.keys.map(beanFactory::removeBeanDefinition)
                 throw IllegalStateException("Can not register bean. because \"${e.message}\" occurred when register bean")
             }
         }
