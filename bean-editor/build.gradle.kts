@@ -20,6 +20,8 @@ dependencies {
     testImplementation("org.springframework.boot:spring-boot-starter-test")
 
     implementation(project(":core"))
+    implementation(project(":bean-manager"))
+    implementation(project(":bean-monitoring"))
 }
 
 
