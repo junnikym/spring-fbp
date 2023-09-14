@@ -17,7 +17,7 @@ import javax.tools.ToolProvider
 
 @Component
 @IgnoreManage
-class ClassImporter (
+class ClassFileImporter (
         private val beanFactory: DefaultListableBeanFactory,
 ) {
 
