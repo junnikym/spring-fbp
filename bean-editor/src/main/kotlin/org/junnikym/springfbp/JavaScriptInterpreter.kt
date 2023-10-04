@@ -3,16 +3,12 @@ package org.junnikym.springfbp
 import java.util.*
 import jdk.jshell.Diag
 import jdk.jshell.JShell
-import org.jetbrains.kotlin.script.jsr223.KotlinJsr223JvmLocalScriptEngineFactory
-import org.springframework.stereotype.Component
 
-@Component
-class ScriptImporter {
+class JavaScriptInterpreter: ScriptInterpreter {
 
     private val jshell = JShell.create()
-    private val kotlinScriptEngine = KotlinJsr223JvmLocalScriptEngineFactory().scriptEngine
 
-    fun runJavaAsScript(code: String) {
+    override fun eval(code: String) {
         if(code.isBlank())
             return
 
@@ -25,19 +21,8 @@ class ScriptImporter {
             throw getErrorMessageInJshell(source, diag).exceptionOf()
         }
 
-        runJavaAsScript(completionInfo.remaining())
+        eval(completionInfo.remaining())
     }
-
-    fun runKotlinAsScript(code: String) {
-        try {
-            kotlinScriptEngine.eval(code)
-        } catch (e: Exception) {
-            throw ScriptRuntimeException(e)
-        }
-    }
-
-
-
 
     private fun getErrorMessageInJshell(source: String, diag: Diag): ErrorMessage {
         val message = ErrorMessage(diag.getMessage(Locale.ENGLISH))
