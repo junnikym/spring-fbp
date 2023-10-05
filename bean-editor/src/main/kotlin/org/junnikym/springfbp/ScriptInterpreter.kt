@@ -4,4 +4,6 @@ interface ScriptInterpreter {
 
     fun eval(code: String)
 
+    fun getMethodSignatures(): Set<String>
+
 }

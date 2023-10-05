@@ -1,6 +1,7 @@
 package org.junnikym.springfbp
 
 import java.util.*
+import java.util.stream.Collectors
 import jdk.jshell.Diag
 import jdk.jshell.JShell
 
@@ -22,6 +23,10 @@ class JavaScriptInterpreter: ScriptInterpreter {
         }
 
         eval(completionInfo.remaining())
+    }
+
+    override fun getMethodSignatures(): Set<String> {
+        return jshell.methods().map { it.signature() }.collect(Collectors.toSet())
     }
 
     private fun getErrorMessageInJshell(source: String, diag: Diag): ErrorMessage {
