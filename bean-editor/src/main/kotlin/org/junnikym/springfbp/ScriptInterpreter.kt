@@ -6,4 +6,6 @@ interface ScriptInterpreter {
 
     fun getMethodSignatures(): Set<String>
 
+    fun getClassNames(): Set<String>
+
 }

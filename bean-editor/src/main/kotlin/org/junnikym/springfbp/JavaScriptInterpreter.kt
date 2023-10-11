@@ -4,6 +4,7 @@ import java.util.*
 import java.util.stream.Collectors
 import jdk.jshell.Diag
 import jdk.jshell.JShell
+import kotlin.streams.toList
 
 class JavaScriptInterpreter: ScriptInterpreter {
 
@@ -27,6 +28,10 @@ class JavaScriptInterpreter: ScriptInterpreter {
 
     override fun getMethodSignatures(): Set<String> {
         return jshell.methods().map { it.signature() }.collect(Collectors.toSet())
+    }
+
+    override fun getClassNames(): Set<String> {
+        return jshell.types().map { it.name() }.collect(Collectors.toSet())
     }
 
     private fun getErrorMessageInJshell(source: String, diag: Diag): ErrorMessage {
