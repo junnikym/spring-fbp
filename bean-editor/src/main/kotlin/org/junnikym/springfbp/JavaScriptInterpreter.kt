@@ -1,38 +1,104 @@
 package org.junnikym.springfbp
 
 import java.util.*
-import java.util.stream.Collectors
 import jdk.jshell.Diag
 import jdk.jshell.JShell
-import kotlin.streams.toList
+import jdk.jshell.MethodSnippet
+import jdk.jshell.Snippet
+import jdk.jshell.SnippetEvent
+import jdk.jshell.TypeDeclSnippet
+import jdk.jshell.execution.LocalExecutionControlProvider
 
-class JavaScriptInterpreter: ScriptInterpreter {
+class JavaScriptInterpreter: ScriptInterpreter() {
 
-    private val jshell = JShell.create()
+    private val scriptInterpreterClass = ScriptInterpreter::class.java
+
+    private val jshell = JShell.builder()
+        .executionEngine(LocalExecutionControlProvider(), null)
+        .build()
+
+    init {
+        runCodeOnShell("import ${scriptInterpreterClass.name}")
+    }
 
     override fun eval(code: String) {
+
+        runCodeOnShell(code)?.let {
+            it.snippets.forEach(::putResources)
+            it.remainingCode.let(::eval)
+        }
+    }
+
+    private fun runCodeOnShell(code: String): ShellResult? {
         if(code.isBlank())
-            return
+            return null
 
         val completionInfo = jshell.sourceCodeAnalysis().analyzeCompletion(code)
         val source = completionInfo.source()
 
         val snippetEvents = try { jshell.eval(source) } catch (e: Exception) { throw ScriptRuntimeException(e) }
-        snippetEvents.forEach eventLoop@{ event->
-            val diag = jshell.diagnostics(event.snippet()).toList().find(Diag::isError) ?: return@eventLoop
-            throw getErrorMessageInJshell(source, diag).exceptionOf()
+        snippetEvents.forEach { event->
+            jshell.diagnostics(event.snippet())
+                .toList()
+                .find(Diag::isError)
+                ?.let { throw getErrorMessageInJshell(source, it).exceptionOf() }
         }
 
-        eval(completionInfo.remaining())
+        return ShellResult(
+            snippets = snippetEvents,
+            remainingCode = completionInfo.remaining(),
+        )
     }
 
-    override fun getMethodSignatures(): Set<String> {
-        return jshell.methods().map { it.signature() }.collect(Collectors.toSet())
+
+
+    private fun putResources(event: SnippetEvent) {
+        val snippet = event.snippet()
+        putMethod(snippet)
+        putClass(snippet)
     }
 
-    override fun getClassNames(): Set<String> {
-        return jshell.types().map { it.name() }.collect(Collectors.toSet())
+    private fun putMethod(snippet: Snippet) {
+        if(snippet.kind() != Snippet.Kind.METHOD)
+            return
+
+        signatureAsPrimitive(snippet as MethodSnippet).let(::addMethod)
+
     }
+
+    private fun putClass(snippet: Snippet) {
+        if(snippet.kind() != Snippet.Kind.TYPE_DECL)
+            return
+
+        (snippet as TypeDeclSnippet).name().let(::addMethod)
+    }
+
+    private fun signatureAsPrimitive(methodSnippet: MethodSnippet): String {
+        val signature = methodSnippet.signature()
+        val name = methodSnippet.name()
+        val parameter = methodSnippet.parameterTypes()
+            .split(",")
+            .map(::getTypeDescriptorString)
+            .reduce { acc, value -> acc + value }
+        val returnType = signature
+            .split(")").last()
+            .let(::getTypeDescriptorString)
+
+        return "$name($parameter)$returnType"
+    }
+
+    private fun getTypeDescriptorString (typename: String): String {
+        return try {
+            TypeClassFactory.of(typename).descriptorString()
+        } catch (e: ClassNotFoundException) {
+            "$typename.class.descriptorString()"
+                .trimIndent()
+                .let { runCodeOnShell(it)!!.snippets[0].value() }
+                .let { it.replace("\"", "") }
+        }
+    }
+
+
 
     private fun getErrorMessageInJshell(source: String, diag: Diag): ErrorMessage {
         val message = ErrorMessage(diag.getMessage(Locale.ENGLISH))
@@ -54,6 +120,11 @@ class JavaScriptInterpreter: ScriptInterpreter {
 
         return
     }
+
+    private data class ShellResult(
+        val snippets: List<SnippetEvent>,
+        val remainingCode: String,
+    )
 
     private data class ErrorMessage(
         var errorMessage: String,
