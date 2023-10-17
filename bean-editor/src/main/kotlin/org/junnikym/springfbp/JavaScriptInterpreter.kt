@@ -70,7 +70,7 @@ class JavaScriptInterpreter: ScriptInterpreter() {
         if(snippet.kind() != Snippet.Kind.TYPE_DECL)
             return
 
-        (snippet as TypeDeclSnippet).name().let(::addMethod)
+        (snippet as TypeDeclSnippet).name().let(::addClass)
     }
 
     private fun signatureAsPrimitive(methodSnippet: MethodSnippet): String {
