@@ -22,7 +22,6 @@ class JavaScriptInterpreter: ScriptInterpreter() {
     }
 
     override fun eval(code: String) {
-
         runCodeOnShell(code)?.let {
             it.snippets.forEach(::putResources)
             it.remainingCode.let(::eval)
@@ -62,8 +61,9 @@ class JavaScriptInterpreter: ScriptInterpreter() {
         if(snippet.kind() != Snippet.Kind.METHOD)
             return
 
-        signatureAsPrimitive(snippet as MethodSnippet).let(::addMethod)
-
+        getDescriptorStringOfSignature(snippet as MethodSnippet)
+            .also(::checkMethod)
+            .let(::addMethod)
     }
 
     private fun putClass(snippet: Snippet) {
@@ -73,21 +73,21 @@ class JavaScriptInterpreter: ScriptInterpreter() {
         (snippet as TypeDeclSnippet).name().let(::addClass)
     }
 
-    private fun signatureAsPrimitive(methodSnippet: MethodSnippet): String {
+    private fun getDescriptorStringOfSignature(methodSnippet: MethodSnippet): String {
         val signature = methodSnippet.signature()
         val name = methodSnippet.name()
         val parameter = methodSnippet.parameterTypes()
             .split(",")
-            .map(::getTypeDescriptorString)
+            .map(::getDescriptorStringOfType)
             .reduce { acc, value -> acc + value }
         val returnType = signature
             .split(")").last()
-            .let(::getTypeDescriptorString)
+            .let(::getDescriptorStringOfType)
 
         return "$name($parameter)$returnType"
     }
 
-    private fun getTypeDescriptorString (typename: String): String {
+    private fun getDescriptorStringOfType (typename: String): String {
         return try {
             TypeClassFactory.of(typename).descriptorString()
         } catch (e: ClassNotFoundException) {
