@@ -3,7 +3,7 @@ package org.junnikym.springfbp.service
 import org.junnikym.springfbp.factory.BeanDependencyLinkFactory
 import org.junnikym.springfbp.factory.BeanDependencyNodeFactory
 import org.junnikym.springfbp.BeanWithLayer
-import org.springframework.aop.framework.AopProxyUtils
+import org.junnikym.springfbp.BeanLayer
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory
 import org.springframework.stereotype.Service
 import java.util.stream.Collectors
@@ -36,8 +36,8 @@ class LayerQueryServiceImpl (
         return result
     }
 
-    override fun getLayer(beanName: String): Int {
-        return beanLayerFactory.get(beanName);
+    override fun getLayer(beanName: String): BeanLayer {
+        return beanLayerFactory.get(beanName).let(::layerOf);
     }
 
     private fun beanWithLayerOf(beanName: String): BeanWithLayer {
@@ -58,6 +58,12 @@ class LayerQueryServiceImpl (
                 beanClassSimpleName = node.clazz.simpleName,
                 linkedWith = linkedWith,
                 layer = beanLayerFactory.get(beanName),
+        )
+    }
+
+    private fun layerOf(layer: Int): BeanLayer {
+        return BeanLayer(
+            layer = layer
         )
     }
 

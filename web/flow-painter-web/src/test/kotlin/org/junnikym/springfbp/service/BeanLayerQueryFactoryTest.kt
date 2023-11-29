@@ -8,7 +8,7 @@ import org.springframework.test.context.TestPropertySource
 
 @SpringBootTest
 @TestPropertySource(locations= ["classpath:test.properties"])
-class LayerQueryFactoryTest(
+class BeanLayerQueryFactoryTest(
         @Autowired private val beanLayerFactory: BeanLayerFactory,
 ) {
 
