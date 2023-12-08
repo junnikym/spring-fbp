@@ -1,6 +1,7 @@
 package org.junnikym.springfbp.service
 
 import org.junnikym.springfbp.BeanWithLayer
+import org.junnikym.springfbp.BeanLayer
 import org.junnikym.springfbp.filter.IgnoreManage
 
 @IgnoreManage
@@ -12,6 +13,6 @@ interface LayerQueryService {
      *
      * @return layer number
      */
-    fun getLayer(beanName: String): Int
+    fun getLayer(beanName: String): BeanLayer
 
 }

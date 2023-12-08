@@ -9,7 +9,7 @@ import org.springframework.test.context.TestPropertySource
 
 @SpringBootTest
 @TestPropertySource(locations= ["classpath:test.properties"])
-class LayerQueryServiceTest(
+class BeanLayerQueryServiceTest(
         @Autowired private val layerQueryService: LayerQueryService,
 ) {
 
@@ -58,11 +58,11 @@ class LayerQueryServiceTest(
         val leaf = layerQueryService.getLayer("testLeafBean")
 
         // then
-        assertEquals(root, 0)
-        assertEquals(internalA, 1)
-        assertEquals(internalB, 1)
-        assertEquals(internalC, 1)
-        assertEquals(leaf, 2)
+        assertEquals(root.layer, 0)
+        assertEquals(internalA.layer, 1)
+        assertEquals(internalB.layer, 1)
+        assertEquals(internalC.layer, 1)
+        assertEquals(leaf.layer, 2)
     }
 
 }
