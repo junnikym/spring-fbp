@@ -2,10 +2,12 @@ package org.junnikym.springfbp.controller
 
 import org.junnikym.springfbp.BeanWithLayer
 import org.junnikym.springfbp.BeanLayer
+import org.junnikym.springfbp.filter.IgnoreManage
 import org.junnikym.springfbp.service.LayerQueryService
 import org.springframework.web.bind.annotation.*
 
 @RestController
+@IgnoreManage
 @RequestMapping("/api/v1/bean/layer")
 class BeanLayerController(
     private val layerQueryService: LayerQueryService,
