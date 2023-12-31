@@ -6,16 +6,20 @@ import com.fasterxml.jackson.databind.SerializerProvider
 import com.fasterxml.jackson.databind.annotation.JsonSerialize
 import java.lang.reflect.Method
 import java.time.LocalDateTime
+import java.util.UUID
 
 @JsonSerialize(using = BeanEventSerializer::class)
 data class BeanEvent(
-        val bean: Any,
-        val from: StackTraceElement?,
-        val method: Method,
-        val createdAt: LocalDateTime = LocalDateTime.now(),
+    val id: UUID = UUID.randomUUID(),
+    val bean: Any,
+    var from: BeanEvent? = null,
+    val to: MutableList<BeanEvent> = mutableListOf(),
+    val method: Method,
+    val createdAt: LocalDateTime = LocalDateTime.now(),
 ) {
     override fun toString(): String {
         return """BeanEvent(
+            id=$id,
             bean=$bean, 
             from=$from, 
             method=$method, 
@@ -29,8 +33,9 @@ class BeanEventSerializer: JsonSerializer<BeanEvent>() {
 
     override fun serialize(value: BeanEvent?, gen: JsonGenerator?, serializers: SerializerProvider?) {
         gen?.writeStartObject()
+        serializers?.defaultSerializeField("id", value?.id, gen)
         serializers?.defaultSerializeField("bean", value?.bean?.let(::BeanWrapper), gen)
-        serializers?.defaultSerializeField("from", value?.from?.let(::FromWrapper), gen)
+        serializers?.defaultSerializeField("to", value, gen)
         serializers?.defaultSerializeField("method", value?.method?.let(::MethodWrapper), gen)
         serializers?.defaultSerializeField("createdAt", value?.createdAt, gen)
         gen?.writeEndObject()
@@ -43,18 +48,6 @@ class BeanEventSerializer: JsonSerializer<BeanEvent>() {
         constructor(obj: Any) : this(
                 className = obj::class.qualifiedName!!,
                 classSimpleName = obj::class.simpleName!!,
-        )
-    }
-
-    data class FromWrapper(
-            val className: String,
-            val methodName: String,
-            val lineNumber: Int,
-    ) {
-        constructor(stackTrace: StackTraceElement) : this(
-                className = stackTrace.className,
-                methodName = stackTrace.methodName,
-                lineNumber = stackTrace.lineNumber,
         )
     }
 

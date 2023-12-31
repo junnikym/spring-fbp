@@ -1,8 +1,6 @@
 package org.junnikym.springfbp
 
-import org.junnikym.springfbp.filter.BeanManagingTargetFilter
 import org.junnikym.springfbp.filter.IgnoreManage
-import org.springframework.aop.framework.AopProxyUtils
 import org.springframework.aop.framework.ProxyFactory
 import org.springframework.stereotype.Component
 import java.lang.reflect.Proxy
@@ -11,7 +9,6 @@ import java.lang.reflect.Proxy
 @Component
 @IgnoreManage
 class BeanMonitoringProxyFactory(
-        private val beanManagingTargetFilter: BeanManagingTargetFilter,
         private val beanExecutionMonitoringService: BeanExecutionMonitoringService,
 ) {
 
@@ -26,7 +23,7 @@ class BeanMonitoringProxyFactory(
             return bean
 
         val proxyFactory = ProxyFactory(bean)
-        val aspect = BeanExecutionMonitoringAspect(bean, beanManagingTargetFilter, beanExecutionMonitoringService)
+        val aspect = BeanExecutionMonitoringAspect(bean, beanExecutionMonitoringService)
         proxyFactory.addAdvice(aspect)
         return proxyFactory.proxy
     }
