@@ -7,14 +7,19 @@ import reactor.core.publisher.Sinks
 @IgnoreManage
 abstract class AbstractBeanMonitoringService {
 
-    private val publisher: Sinks.Many<BeanEvent> = Sinks.many().multicast().onBackpressureBuffer()
+    private val eventMetastasisChannel: Sinks.Many<BeanEvent.Metastasis> = Sinks.many().multicast().onBackpressureBuffer()
+    private val eventChannel: Sinks.Many<BeanEvent> = Sinks.many().multicast().onBackpressureBuffer()
 
-    fun getFlux(): Flux<BeanEvent> {
-        return publisher.asFlux()
+    fun getEventMetastasisChannel(): Flux<BeanEvent.Metastasis> {
+        return eventMetastasisChannel.asFlux()
     }
 
-    protected fun emit(event: BeanEvent) {
-        publisher.tryEmitNext(event)
+    protected fun emitEventMetastasis(event: BeanEvent) {
+        eventMetastasisChannel.tryEmitNext(event.toMetastasis())
+    }
+
+    protected fun emitEvent(event: BeanEvent) {
+        eventChannel.tryEmitNext(event)
     }
 
 }

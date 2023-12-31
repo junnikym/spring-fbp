@@ -13,7 +13,7 @@ class BeanExecutionMonitoringAspect(
     override fun invoke(invocation: MethodInvocation): Any? {
         beanExecutionMonitoringService.execute(bean, invocation.method)
         val result = invocation.proceed()
-        beanExecutionMonitoringService.exit(invocation.method)
+        beanExecutionMonitoringService.exit()
 
         return result
     }
