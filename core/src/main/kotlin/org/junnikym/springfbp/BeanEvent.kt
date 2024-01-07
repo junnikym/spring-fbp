@@ -41,25 +41,26 @@ data class BeanEvent(
             cur = cur.from
         }
 
-        var lastMetastasis = Metastasis.of(executedStack.pop(), null)
+        val rootMetastasis = Metastasis.of(executedStack.pop())
+        var lastMetastasis = rootMetastasis
         while(true) {
-            val from = try { executedStack.pop() } catch (ex: EmptyStackException) { null }
-            lastMetastasis = from?.let { Metastasis.of(it, lastMetastasis) } ?: lastMetastasis
-            if(from == null)
-                break
+            val to = try { executedStack.pop() } catch (ex: EmptyStackException) { null } ?: break
+
+            lastMetastasis.to = Metastasis.of(to)
+            lastMetastasis = lastMetastasis.to!!
         }
 
-        return lastMetastasis
+        return rootMetastasis
     }
 
     data class Metastasis(
         val method: MethodExpr,
-        val to: Metastasis?
+        var to: Metastasis?
     ) {
         companion object {
-            fun of(from: BeanEvent, to: Metastasis?) = Metastasis(
+            fun of(from: BeanEvent) = Metastasis(
                 method = from.method.let(MethodExpr::of),
-                to = to
+                to = null
             )
         }
     }
