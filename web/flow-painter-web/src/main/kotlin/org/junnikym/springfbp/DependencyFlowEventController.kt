@@ -13,8 +13,8 @@ class DependencyFlowEventController (
 ) {
 
     @GetMapping(path = ["/api/v1/event/flow/execution"], produces = [MediaType.TEXT_EVENT_STREAM_VALUE])
-    fun subscribeExecutionEvent(): Flux<BeanEvent> {
-        return beanExecutionMonitoringService.getFlux();
+    fun subscribeExecutionEvent(): Flux<BeanEvent.Metastasis> {
+        return beanExecutionMonitoringService.getEventMetastasisChannel();
     }
 
 }

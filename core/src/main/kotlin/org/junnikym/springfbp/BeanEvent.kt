@@ -4,70 +4,122 @@ import com.fasterxml.jackson.core.JsonGenerator
 import com.fasterxml.jackson.databind.JsonSerializer
 import com.fasterxml.jackson.databind.SerializerProvider
 import com.fasterxml.jackson.databind.annotation.JsonSerialize
+import org.springframework.aop.framework.AopProxyUtils
 import java.lang.reflect.Method
 import java.time.LocalDateTime
+import java.util.*
 
-@JsonSerialize(using = BeanEventSerializer::class)
+@JsonSerialize(using = BeanEvent.BeanEventSerializer::class)
 data class BeanEvent(
-        val bean: Any,
-        val from: StackTraceElement?,
-        val method: Method,
-        val createdAt: LocalDateTime = LocalDateTime.now(),
+    val bean: Any,
+    val from: BeanEvent? = null,
+    val to: MutableList<BeanEvent> = mutableListOf(),
+    val method: Method,
+    val executedAt: LocalDateTime = LocalDateTime.now(),
+    var finishedAt: LocalDateTime? = null
 ) {
     override fun toString(): String {
         return """BeanEvent(
             bean=$bean, 
             from=$from, 
             method=$method, 
-            createdAt=$createdAt
+            executedAt=$executedAt
+            finishedAt=$finishedAt
         )
         """
     }
-}
 
-class BeanEventSerializer: JsonSerializer<BeanEvent>() {
+    fun toMetastasis(): Metastasis {
+        val executedStack = Stack<BeanEvent>()
 
-    override fun serialize(value: BeanEvent?, gen: JsonGenerator?, serializers: SerializerProvider?) {
-        gen?.writeStartObject()
-        serializers?.defaultSerializeField("bean", value?.bean?.let(::BeanWrapper), gen)
-        serializers?.defaultSerializeField("from", value?.from?.let(::FromWrapper), gen)
-        serializers?.defaultSerializeField("method", value?.method?.let(::MethodWrapper), gen)
-        serializers?.defaultSerializeField("createdAt", value?.createdAt, gen)
-        gen?.writeEndObject()
+        var cur: BeanEvent? = this
+        while(true) {
+            if(cur == null)
+                break
+
+            executedStack.push(cur);
+            cur = cur.from
+        }
+
+        val rootMetastasis = Metastasis.of(executedStack.pop())
+        var lastMetastasis = rootMetastasis
+        while(true) {
+            val to = try { executedStack.pop() } catch (ex: EmptyStackException) { null } ?: break
+
+            lastMetastasis.to = Metastasis.of(to)
+            lastMetastasis = lastMetastasis.to!!
+        }
+
+        return rootMetastasis
     }
 
-    data class BeanWrapper(
-            val className: String,
-            val classSimpleName: String
+    data class Metastasis(
+        val method: MethodExpr,
+        var to: Metastasis?
     ) {
-        constructor(obj: Any) : this(
-                className = obj::class.qualifiedName!!,
-                classSimpleName = obj::class.simpleName!!,
-        )
+        companion object {
+            fun of(from: BeanEvent) = Metastasis(
+                method = from.method.let(MethodExpr::of),
+                to = null
+            )
+        }
     }
 
-    data class FromWrapper(
-            val className: String,
-            val methodName: String,
-            val lineNumber: Int,
-    ) {
-        constructor(stackTrace: StackTraceElement) : this(
-                className = stackTrace.className,
-                methodName = stackTrace.methodName,
-                lineNumber = stackTrace.lineNumber,
-        )
+    class BeanEventSerializer: JsonSerializer<BeanEvent>() {
+
+        override fun serialize(value: BeanEvent?, gen: JsonGenerator?, serializers: SerializerProvider?) {
+            gen?.writeStartObject()
+            serializers?.defaultSerializeField("bean", value?.bean?.let(BeanExpr::of), gen)
+            serializers?.defaultSerializeField("to", value?.to, gen)
+            serializers?.defaultSerializeField("method", value?.method?.let(MethodExpr::of), gen)
+            serializers?.defaultSerializeField("executedAt", value?.executedAt, gen)
+            serializers?.defaultSerializeField("finishedAt", value?.finishedAt, gen)
+            gen?.writeEndObject()
+        }
+
     }
 
-    data class MethodWrapper (
-            val name: String,
-            val className: String,
-            val returnType: String,
+    data class FromExpr(
+        val className: String,
+        val methodName: String,
     ) {
-        constructor(method: Method) : this(
-                name = method.name,
-                className = method.declaringClass.name,
-                returnType = method.returnType.name,
-        )
+        companion object {
+            fun of(event: BeanEvent): FromExpr {
+                val cls = AopProxyUtils.ultimateTargetClass(event.bean)
+                return FromExpr(
+                    className = cls.name,
+                    methodName = event.method.name,
+                )
+            }
+        }
+    }
+
+    data class BeanExpr(
+        val className: String,
+        val classSimpleName: String
+    ) {
+        companion object {
+            fun of(obj: Any): BeanExpr {
+                val cls = AopProxyUtils.ultimateTargetClass(obj)
+                return BeanExpr(cls.name, cls.simpleName)
+            }
+        }
+    }
+
+    data class MethodExpr (
+        val name: String,
+        val className: String,
+        val returnType: String,
+    ) {
+        companion object {
+            fun of(method: Method): MethodExpr {
+                return MethodExpr(
+                    name = method.name,
+                    className = method.declaringClass.name,
+                    returnType = method.returnType.name,
+                )
+            }
+        }
     }
 
 }
