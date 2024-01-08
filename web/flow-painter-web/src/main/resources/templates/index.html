@@ -34,12 +34,17 @@
 	    BeanDependencyNode.initLayers()
 
         const beanDependencyTable = document.getElementById("bean-dependency-table")
-        const executionEvent = new BeanExecutionEventApi(event => {
-	        let node = BeanDependencyNode.nodes.get(event.from?.className)
+        const executionEvent = new BeanExecutionEventApi(event => executionEventDraw(event))
+
+        function executionEventDraw(event) {
+            if(!event || !event?.to)
+                return
+
+            let node = BeanDependencyNode.nodes.get(event.method?.className)
 	        if(!node)
 	            return
 
-	        const line = node.linkDoms.get(event.bean.className)
+	        const line = node.linkDoms.get(event.to?.method?.className)
 	        if(!line)
 	            return
 
@@ -47,9 +52,10 @@
             pointOnPath.point.setAttributeNS(null,"r",5);
             pointOnPath.point.setAttributeNS(null,"fill","black");
             pointOnPath.point.setAttributeNS(null,"stroke","none");
-
             pointOnPath.run()
-	    })
+
+            executionEventDraw(event.to)
+        }
     </script>
 
 </body>
