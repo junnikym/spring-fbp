@@ -7,11 +7,14 @@ import org.springframework.stereotype.Component
 class DefaultBeanDependencyNodeFactory : BeanDependencyNodeFactory {
 
     private val nodeNameMap = mutableMapOf<String, BeanDependencyNode>()
+    private val beanNameMap = mutableMapOf<String, BeanDependencyNode>()
     private val nodeClassMap = mutableMapOf<Class<*>, BeanDependencyNode>()
 
     override fun add(node: BeanDependencyNode) {
-        nodeNameMap[node.name] = node
+        nodeNameMap[node.nodeName] = node
         nodeClassMap[node.clazz] = node
+
+        node.beanName?.let { beanName-> beanNameMap.put(beanName, node) }
     }
 
     override fun getAll(): Collection<BeanDependencyNode> {
@@ -23,11 +26,17 @@ class DefaultBeanDependencyNodeFactory : BeanDependencyNodeFactory {
     }
 
     override fun get(name: String): BeanDependencyNode? {
-        return nodeNameMap[name]
+        return nodeNameMap[name] ?: beanNameMap[name]
     }
 
     override fun get(clazz: Class<*>): BeanDependencyNode? {
-        return nodeClassMap[clazz]
+        val node = nodeClassMap[clazz]
+        if(node != null)
+            return node
+
+        return clazz.interfaces
+            .find(nodeClassMap::containsKey)
+            ?.let(nodeClassMap::get)
     }
 
     override fun exists(name: String): Boolean {

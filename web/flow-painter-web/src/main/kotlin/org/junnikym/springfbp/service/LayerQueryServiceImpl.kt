@@ -45,7 +45,7 @@ class LayerQueryServiceImpl (
                 .getLinks(beanName)
                 .map {
                     BeanWithLayer.LinkedBean (
-                            beanName = it.from.name,
+                            beanName = it.from.nodeName,
                             beanClassQualifiedName = it.from.clazz.name,
                             beanClassSimpleName = it.from.clazz.simpleName
                     )

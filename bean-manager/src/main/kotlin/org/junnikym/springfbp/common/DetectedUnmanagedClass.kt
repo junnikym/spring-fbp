@@ -3,6 +3,7 @@ package org.junnikym.springfbp.common
 import java.lang.reflect.Method
 
 data class DetectedUnmanagedClass(
+        val name: String,
         val fromClass: Class<*>,
         val methodName: String? = null,
         val generatedClass: Class<*>,

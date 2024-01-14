@@ -44,8 +44,8 @@ class DefaultBeanDependencyLinkFactory : BeanDependencyLinkFactory {
     }
 
     private fun addToListedBeanList(link: BeanDependencyLink) {
-        linkedBeanNameList.add(link.from.name)
-        linkedBeanNameList.add(link.to.name)
+        linkedBeanNameList.add(link.from.nodeName)
+        linkedBeanNameList.add(link.to.nodeName)
     }
 
     private fun addToLinkList(link: BeanDependencyLink) {
@@ -53,14 +53,14 @@ class DefaultBeanDependencyLinkFactory : BeanDependencyLinkFactory {
     }
 
     private fun addToLinkMap(link: BeanDependencyLink) {
-        val name = link.to.name
+        val name = link.to.nodeName
         addToMap(name, link, linkNameMap)
 
         addToMap(link.to.clazz, link, linkClassMap)
     }
 
     private fun addToReverseLinkMap(link: BeanDependencyLink) {
-        val name = link.from.name
+        val name = link.from.nodeName
         addToMap(name, link, reverseLinkMap)
     }
 
@@ -76,17 +76,17 @@ class DefaultBeanDependencyLinkFactory : BeanDependencyLinkFactory {
 
     private fun updateRootNodeNames(link: BeanDependencyLink) {
         // [ remove 'from' in rootSet ]
-        if(rootNodeNameSet.contains(link.from.name))
-            rootNodeNameSet.remove(link.from.name)
+        if(rootNodeNameSet.contains(link.from.nodeName))
+            rootNodeNameSet.remove(link.from.nodeName)
 
         // [ Add to rootSet ]
         // If 'to' has parent when 'to' is 'from', 'to' can't to be root
-        val isVerifiedNotRoot = reverseLinkMap[link.to.name]?.size?.let { it > 0 } ?: false
+        val isVerifiedNotRoot = reverseLinkMap[link.to.nodeName]?.size?.let { it > 0 } ?: false
         if(isVerifiedNotRoot)
             return
 
         // Add 'to' on rootSet
-        rootNodeNameSet.add(link.to.name)
+        rootNodeNameSet.add(link.to.nodeName)
     }
 
 
@@ -96,11 +96,11 @@ class DefaultBeanDependencyLinkFactory : BeanDependencyLinkFactory {
     }
 
     override fun hasParentOfFromNode(link: BeanDependencyLink): Boolean {
-        return reverseLinkMap.containsKey(link.to.name)
+        return reverseLinkMap.containsKey(link.to.nodeName)
     }
 
     override fun getParentNames(beanName: String): Collection<String> {
-        return getLinksWithParent(beanName).map { it.to.name }
+        return getLinksWithParent(beanName).map { it.to.nodeName }
     }
 
     override fun getLinksWithParent(beanName: String): Collection<BeanDependencyLink> {
@@ -154,7 +154,7 @@ class DefaultBeanDependencyLinkFactory : BeanDependencyLinkFactory {
     }
 
     override fun isLinked(from: String, to: String): Boolean {
-        return getLinks(from).any { it.from.name == to }
+        return getLinks(from).any { it.from.nodeName == to }
     }
 
     override fun isLinked(from: Class<*>, to: Class<*>): Boolean {

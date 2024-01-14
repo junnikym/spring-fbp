@@ -25,9 +25,8 @@ class UnmanagedClassAspectConfig (
 
     private fun applyProxy(node: BeanDependencyNode) {
         val originalBean = getTargetOfProxy(node.bean!!)
-        val targets = getFieldsNeedToBeProxy(node.name, node.clazz)
+        val targets = getFieldsNeedToBeProxy(node)
         targets.forEach{ proxyField(it, originalBean) }
-
     }
 
     private fun getTargetOfProxy(proxy: Any): Any {
@@ -37,14 +36,17 @@ class UnmanagedClassAspectConfig (
                 .let { it.target!! }
     }
 
-    private fun getFieldsNeedToBeProxy(beanName: String, originalClass: Class<*>): List<Field> {
+    private fun getFieldsNeedToBeProxy(node: BeanDependencyNode): List<Field> {
+        if(node.beanName.isNullOrBlank())
+            return listOf()
+
         val dependencies = beanFactory
-                .getDependenciesForBean(beanName)
+                .getDependenciesForBean(node.beanName!!)
                 .map(beanFactory::getBean)
                 .map(AopProxyUtils::ultimateTargetClass)
                 .toSet()
 
-        return originalClass.declaredFields
+        return node.clazz.declaredFields
                 .filter { dependencies.contains(it.type).not() }
     }
 

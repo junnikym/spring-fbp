@@ -3,7 +3,7 @@ class BeanDependencyNode {
     static nodes = new Map()
 
     static DEFAULT_HEIGHT = 120
-    static DEFAULT_WIDTH  = 240
+    static DEFAULT_WIDTH  = 520
 
     static layers
     static linkLineGap = 10

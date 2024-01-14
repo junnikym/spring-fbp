@@ -131,11 +131,11 @@ private class UnmanagedClassMethodVisitor(
             return
 
         detectedUnmanagedClassOf(
-                generatedClass,
-                methodName,
-                methodDescriptor,
-                DetectedUnmanagedClass.GeneratorType.Constructor,
-                generatedClass,
+            generatedClass = generatedClass,
+            generatorName = methodName,
+            generatorDesc = methodDescriptor,
+            generatorType = DetectedUnmanagedClass.GeneratorType.Constructor,
+            generatorOwner = generatedClass,
         ).let(detectedClasses::add)
     }
 
@@ -165,11 +165,11 @@ private class UnmanagedClassMethodVisitor(
             return
 
         detectedUnmanagedClassOf(
-                method.returnType,
-                methodName,
-                methodDescriptor,
-                DetectedUnmanagedClass.GeneratorType.Method,
-                factoryClass,
+            generatedClass = method.returnType,
+            generatorName = methodName,
+            generatorDesc = methodDescriptor,
+            generatorType = DetectedUnmanagedClass.GeneratorType.Method,
+            generatorOwner = factoryClass,
         ).let(detectedClasses::add)
     }
 
@@ -212,32 +212,32 @@ private class UnmanagedClassMethodVisitor(
         }
 
         detectedUnmanagedClassOf(
-                fieldClass,
-                assignFieldName,
-                fieldDescriptor,
-                generator,
-                getClassFromPath(fieldOwner)
+            name = fieldName,
+            generatedClass = fieldClass,
+            generatorName = assignFieldName,
+            generatorDesc = fieldDescriptor,
+            generatorType = generator,
+            generatorOwner = getClassFromPath(fieldOwner)
         ).let(detectedClasses::add)
     }
 
     private fun detectedUnmanagedClassOf(
-            generatedClass: Class<*>,
-            generatorName: String?,
-            generatorDesc: String,
-            generatorType: DetectedUnmanagedClass.GeneratorType,
-            generatorOwner: Class<*>,
-    ): DetectedUnmanagedClass {
-
-        return DetectedUnmanagedClass(
-                fromClass = this.clazz,
-                methodName = this.methodName,
-                generatedClass = generatedClass,
-                generatorName = generatorName,
-                generatorDesc = generatorDesc,
-                generatorType = generatorType,
-                generatorOwner = generatorOwner,
-        )
-    }
+        name: String = "unknown",
+        generatedClass: Class<*>,
+        generatorName: String?,
+        generatorDesc: String,
+        generatorType: DetectedUnmanagedClass.GeneratorType,
+        generatorOwner: Class<*>,
+    ) = DetectedUnmanagedClass(
+        name = "${this.clazz.name}::${this.methodName}::$name",
+        fromClass = this.clazz,
+        methodName = this.methodName,
+        generatedClass = generatedClass,
+        generatorName = generatorName,
+        generatorDesc = generatorDesc,
+        generatorType = generatorType,
+        generatorOwner = generatorOwner,
+    )
 
     private fun getClassFromPath(path: String): Class<*> {
         val className = ClassUtils.convertResourcePathToClassName(path)
